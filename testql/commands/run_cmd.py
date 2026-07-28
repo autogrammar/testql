@@ -94,6 +94,7 @@ def _run_single(
 
     interp = OqlInterpreter(
         api_url=url,
+        variables={"base_url": url},
         dry_run=dry_run,
         quiet=quiet,
         include_paths=[str(path.parent), "."],

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 import shlex
 from pathlib import Path
@@ -9,7 +10,49 @@ from typing import Any
 
 from testql.base import StepResult, StepStatus
 
+from ._api_runner import _navigate_json_path
+from ._assertions import _COMPARE_OPS
 from ._parser import OqlLine
+
+
+def _extract_json(stdout: str) -> tuple[Any, str | None]:
+    """Parse a command's stdout as JSON.
+
+    Returns (document, error). Many CLIs print a banner or a progress line
+    before the payload, so a strict parse is retried from the first structural
+    character. Anything else is a parse error rather than a silent pass.
+    """
+    text = (stdout or "").strip()
+    if not text:
+        return None, "stdout is empty"
+    try:
+        return json.loads(text), None
+    except json.JSONDecodeError:
+        pass
+    start = min((index for index in (text.find("{"), text.find("[")) if index >= 0), default=-1)
+    if start < 0:
+        return None, "stdout contains no JSON document"
+    try:
+        document, _ = json.JSONDecoder().raw_decode(text[start:])
+    except json.JSONDecodeError as error:
+        return None, f"stdout is not valid JSON ({error.msg})"
+    return document, None
+
+
+def _parse_literal(raw: str) -> Any:
+    """Parse an expected value the same way ASSERT_JSON does."""
+    literal = raw.strip().strip("\"'")
+    lowered = literal.lower()
+    if lowered == "true":
+        return True
+    if lowered == "false":
+        return False
+    if lowered in {"null", "none"}:
+        return None
+    try:
+        return float(literal) if "." in literal else int(literal)
+    except ValueError:
+        return literal
 
 
 class ShellMixin:
@@ -245,6 +288,79 @@ class ShellMixin:
                 status=StepStatus.FAILED,
                 message=f'Pattern "{pattern}" not found',
             ))
+
+    def _cmd_assert_stdout_json(self, args: str, line: OqlLine) -> None:
+        """ASSERT_STDOUT_JSON <path> <op> <value> — Assert on JSON printed by the last command.
+
+        ASSERT_STDOUT_CONTAINS can only match a substring, which makes assertions
+        about machine-readable output brittle: it is whitespace-sensitive, cannot
+        compare numbers, and matches a nested occurrence just as happily as the
+        one that was meant. This navigates the parsed document instead, reusing
+        the paths and operators of ASSERT_JSON.
+
+        Examples:
+            SHELL "node scripts/audit.mjs --json"
+            ASSERT_STDOUT_JSON ok == true
+            ASSERT_STDOUT_JSON summary.findings == 0
+            ASSERT_STDOUT_JSON summary.profiles >= 14
+            ASSERT_STDOUT_JSON findings.length == 0
+            ASSERT_STDOUT_JSON schema == "subactor.dsl-artifact-audit.v1"
+        """
+        parts = args.strip().split(None, 2)
+        if len(parts) < 3:
+            self.out.fail(f"L{line.number}: ASSERT_STDOUT_JSON requires <path> <op> <value>")
+            self.errors.append(f"L{line.number}: ASSERT_STDOUT_JSON requires <path> <op> <value>")
+            self.results.append(StepResult(
+                name="ASSERT_STDOUT_JSON", status=StepStatus.FAILED, message="missing arguments",
+            ))
+            return
+
+        path, op, expected_raw = parts
+        desc = f"ASSERT_STDOUT_JSON {path} {op} {expected_raw}"
+
+        if self._last_shell_result is None:
+            self.out.warn(f"L{line.number}: ASSERT_STDOUT_JSON: No previous SHELL/EXEC/RUN command")
+            return
+        if self._last_shell_result.get("dry_run"):
+            self.out.step("  ⏭️", f"{desc} (dry-run)")
+            self.results.append(StepResult(name=desc, status=StepStatus.PASSED))
+            return
+
+        document, error = _extract_json(self._last_shell_result.get("stdout", ""))
+        if error is not None:
+            self.out.step("  ❌", f"{desc} ({error})")
+            self.errors.append(f"L{line.number}: {desc} failed ({error})")
+            self.results.append(StepResult(name=desc, status=StepStatus.FAILED, message=error))
+            return
+
+        cmp_fn = _COMPARE_OPS.get(op) or _COMPARE_OPS.get(op.upper())
+        if cmp_fn is None:
+            message = f"unknown operator '{op}'"
+            self.out.step("  ❌", f"{desc} ({message})")
+            self.errors.append(f"L{line.number}: {desc} failed ({message})")
+            self.results.append(StepResult(name=desc, status=StepStatus.FAILED, message=message))
+            return
+
+        actual = document if path in {".", "$"} else _navigate_json_path(document, path)
+        # A missing path is a failure, never a pass: an assertion about a field
+        # that is not there has not been checked.
+        if actual is None and op not in {"==", "=", "!="}:
+            message = f"path '{path}' not found"
+            self.out.step("  ❌", f"{desc} ({message})")
+            self.errors.append(f"L{line.number}: {desc} failed ({message})")
+            self.results.append(StepResult(name=desc, status=StepStatus.FAILED, message=message))
+            return
+
+        expected = _parse_literal(expected_raw)
+        ok = cmp_fn(actual, expected)
+
+        if ok:
+            self.out.step("  ✅", f"{desc} (actual: {actual})")
+            self.results.append(StepResult(name=desc, status=StepStatus.PASSED))
+        else:
+            self.out.step("  ❌", f"{desc} (actual: {actual})")
+            self.errors.append(f"L{line.number}: {desc} failed (actual: {actual})")
+            self.results.append(StepResult(name=desc, status=StepStatus.FAILED, message=f"actual: {actual}"))
 
     def _cmd_assert_stderr_contains(self, args: str, line: OqlLine) -> None:
         """ASSERT_STDERR_CONTAINS "pattern" — Assert stderr contains pattern."""

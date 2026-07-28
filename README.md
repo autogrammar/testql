@@ -294,6 +294,22 @@ SET timeout 5000
 GET api_url              # Prints variable value
 ```
 
+#### Secrets
+
+Import credentials with `GETENV_SECRET` rather than `SET`, so the value never
+reaches a result artifact:
+
+```testql
+GETENV_SECRET SUBACTOR_ADMIN_TOKEN admin_token
+GUI_INPUT "#adminToken" "${admin_token}"
+```
+
+The value is replaced with `***REDACTED***` in the reported variables and across
+the whole result payload — step names, messages, values, details, errors and
+warnings. This matters on failure: a driver echoes back what it was handed, so a
+Playwright `fill` timeout reports `fill("<value>")` in its call log, and that
+message is what a CI job keeps.
+
 Variables support `${var}` and `$var` interpolation:
 
 ```testql
@@ -335,7 +351,28 @@ ASSERT_JSON devices[0].id == "dev-001"
 ASSERT_JSON status != "error"
 ```
 
-**Operators:** `==`, `!=`, `>`, `>=`, `<`, `<=`
+**Operators:** `==`, `!=`, `>`, `>=`, `<`, `<=`, `CONTAINS`
+
+#### Shell output assertions
+
+`ASSERT_JSON` reads the last API response. To assert on a JSON report printed by
+a command, use `ASSERT_STDOUT_JSON` — same paths, same operators, applied to the
+stdout of the last `SHELL` / `EXEC` / `RUN`:
+
+```testql
+SHELL "node scripts/audit-dsl-artifacts.mjs --json" 60000
+ASSERT_EXIT_CODE 0
+ASSERT_STDOUT_JSON ok == true
+ASSERT_STDOUT_JSON summary.findings == 0
+ASSERT_STDOUT_JSON findings.length == 0
+ASSERT_STDOUT_JSON schema == "subactor.dsl-artifact-audit.v1"
+```
+
+Prefer it over `ASSERT_STDOUT_CONTAINS` for machine-readable output: substring
+matching is whitespace-sensitive, cannot compare numbers, and matches a nested
+occurrence of a key just as happily as the intended one. A leading banner line
+before the JSON is tolerated; unparseable output and a missing path both fail
+rather than pass silently.
 
 ### GUI Navigation (Playwright)
 

@@ -128,6 +128,8 @@ class OqlInterpreter(ApiRunnerMixin, AssertionsMixin, ContextMixin, EncoderMixin
         for name in self._secret_variable_names:
             if name in reported_variables:
                 reported_variables[name] = "***REDACTED***"
+        reported_variables = self.redact(reported_variables)
+        self._redact_results()
         sr = ScriptResult(
             source=parsed.filename, ok=ok, steps=self.results,
             variables=reported_variables, errors=self.errors,
@@ -216,3 +218,37 @@ class OqlInterpreter(ApiRunnerMixin, AssertionsMixin, ContextMixin, EncoderMixin
 
     def is_secret_value(self, value: str) -> bool:
         return any(secret and secret in value for secret in self._secret_values)
+
+    def redact(self, value: Any) -> Any:
+        """Replace every value imported via GETENV_SECRET, at any depth.
+
+        Redacting the step label is not enough: a driver that fails mid-action
+        echoes back what it was given. Playwright's `fill` timeout, for example,
+        reports `fill("<value>")` in its call log, and that message is written
+        verbatim into the JSON result. Anything a scenario persists therefore has
+        to pass through here, not just what it prints.
+        """
+        if not self._secret_values:
+            return value
+        if isinstance(value, str):
+            for secret in self._secret_values:
+                if secret:
+                    value = value.replace(secret, "***REDACTED***")
+            return value
+        if isinstance(value, list):
+            return [self.redact(item) for item in value]
+        if isinstance(value, tuple):
+            return tuple(self.redact(item) for item in value)
+        if isinstance(value, dict):
+            return {key: self.redact(item) for key, item in value.items()}
+        return value
+
+    def _redact_results(self) -> None:
+        """Scrub secrets from everything that leaves this interpreter."""
+        for step in self.results:
+            step.name = self.redact(step.name)
+            step.message = self.redact(step.message)
+            step.value = self.redact(step.value)
+            step.details = self.redact(step.details)
+        self.errors[:] = [self.redact(item) for item in self.errors]
+        self.warnings[:] = [self.redact(item) for item in self.warnings]
