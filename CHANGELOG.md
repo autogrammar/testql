@@ -7,31 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Secrets imported with `GETENV_SECRET` are now redacted from the entire result
-  payload -- step names, messages, values, details, errors and warnings -- not
-  only from the printed step label and the reported variables. A driver that
-  fails mid-action echoes back what it was given: Playwright's `fill` timeout
-  reports `fill("<value>")` in its call log, and that message was written
-  verbatim into the JSON artifact a CI job keeps.
-- `ASSERT_STDOUT_JSON <path> <op> <value>` — assert on a JSON document printed by
-  the last `SHELL` / `EXEC` / `RUN`, reusing the paths and operators of
-  `ASSERT_JSON`. Previously the only way to check a command's machine-readable
-  output was `ASSERT_STDOUT_CONTAINS`, which is whitespace-sensitive, cannot
-  compare numbers or array lengths, and matches a nested occurrence of a key as
-  readily as the intended one. A banner line before the JSON is tolerated;
-  unparseable output, an unknown operator and a missing path all fail rather
-  than pass silently.
-- Public deterministic batch verification API with versioned request/result
-  contracts, canonical hashes, packaged JSON Schemas, typed request failures,
-  and centralized scenario resolution/execution for orchestration clients.
-- Project-local Node Playwright fallback for legacy TestQL environments,
-  including automatic Chrome/Chromium discovery and support for the complete
-  `GUI_*` interaction lifecycle.
+## [1.2.67] - 2026-07-30
 
-### Changed
-- Playwright is now a core TestQL dependency so new installations can execute
-  browser GUI scenarios without selecting an optional extra.
+### Fixed
+- TestTOON `NAVIGATE[]` after a bare `GUI_START` no longer emits a second
+  `GUI_START` with a relative path (e.g. `/`), which failed as
+  `GUI_START: path not found: /`. Session state is tracked across bare
+  COMMANDS and NAVIGATE sections; follow-up rows become `GUI_NAVIGATE`.
 
 ## [1.2.66] - 2026-07-21
 

@@ -163,11 +163,39 @@ def _expand_api(
     return line_num
 
 
+def _gui_session_open_from_lines(lines: list[OqlLine]) -> bool:
+    """Return True when a prior GUI_START is still open (no GUI_STOP yet).
+
+    Bare OQL lines such as ``GUI_START "http://..."`` land in the COMMANDS
+    section before NAVIGATE tables. The first NAVIGATE row must then become
+    GUI_NAVIGATE, not a second GUI_START with a relative path (which fails as
+    ``GUI_START: path not found: /``).
+    """
+    open_session = False
+    for line in lines:
+        cmd = (line.command or "").strip().upper()
+        if cmd in {"GUI_START", "START"}:
+            open_session = True
+        elif cmd in {"GUI_STOP", "STOP"}:
+            open_session = False
+    return open_session
+
+
 def _expand_navigate(section: ToonSection, lines: list[OqlLine], line_num: int) -> int:
-    """Expand NAVIGATE rows, opening a GUI session for the first target."""
-    for index, row in enumerate(section.rows):
+    """Expand NAVIGATE rows into GUI_START / GUI_NAVIGATE + optional WAIT.
+
+    The first target opens a session only when none is already open from a
+    prior bare ``GUI_START`` (or an earlier NAVIGATE section). Subsequent
+    rows always navigate within the open session.
+    """
+    session_open = _gui_session_open_from_lines(lines)
+    for row in section.rows:
         path = row.get('path', '/')
-        command = 'GUI_START' if index == 0 else 'NAVIGATE'
+        if session_open:
+            command = 'GUI_NAVIGATE'
+        else:
+            command = 'GUI_START'
+            session_open = True
         raw = f'{command} "{path}"'
         lines.append(OqlLine(number=line_num, command=command, args=f'"{path}"', raw=raw))
         line_num += 1

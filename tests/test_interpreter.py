@@ -189,11 +189,26 @@ class TestTestTOONExpansion:
             "  /connect-id,    300\n"
         )
         script = _testtoon_to_oql(source, "test.testql.toon.yaml")
-        assert len(script.lines) == 4  # GUI_START + WAIT + NAVIGATE + WAIT
+        assert len(script.lines) == 4  # GUI_START + WAIT + GUI_NAVIGATE + WAIT
         assert script.lines[0].command == "GUI_START"
-        assert script.lines[2].command == "NAVIGATE"
+        assert script.lines[2].command == "GUI_NAVIGATE"
         assert script.lines[1].command == "WAIT"
         assert script.lines[1].args == "500"
+
+    def test_navigate_after_bare_gui_start_uses_gui_navigate(self):
+        """Regression: bare GUI_START then NAVIGATE[/] must not re-GUI_START /."""
+        source = (
+            'GUI_START "http://localhost:8100"\n'
+            "WAIT 2000\n"
+            "NAVIGATE[1]{path, wait_ms}:\n"
+            "  /, 300\n"
+        )
+        script = _testtoon_to_oql(source, "smoke-nav.testql.toon.yaml")
+        commands = [line.command for line in script.lines]
+        assert commands.count("GUI_START") == 1
+        assert "GUI_NAVIGATE" in commands
+        nav = next(line for line in script.lines if line.command == "GUI_NAVIGATE")
+        assert nav.args.strip('"') == "/"
 
 
 class TestOqlInterpreter:
