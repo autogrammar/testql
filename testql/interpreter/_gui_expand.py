@@ -15,6 +15,7 @@ _WAIT_COUNT_ACTIONS = frozenset({"wait_for_count", "wait_count"})
 _URL_PARAM_ACTIONS = frozenset({"assert_url_param", "url_param"})
 _VALUE_ACTIONS = frozenset({"assert_value", "value"})
 _EVAL_ACTIONS = frozenset({"eval", "js", "javascript"})
+_COOKIE_ACTIONS = frozenset({"assert_cookie", "cookie"})
 _STOP_ACTIONS = frozenset({"stop", "close"})
 _SKIP_WAIT = frozenset({None, "-", "", 0, "0"})
 
@@ -73,6 +74,8 @@ def _gui_action_group(action: str) -> str:
         return "value"
     if action in _EVAL_ACTIONS:
         return "eval"
+    if action in _COOKIE_ACTIONS:
+        return "cookie"
     if action in _STOP_ACTIONS:
         return "stop"
     if action:
@@ -199,6 +202,18 @@ def _expand_gui_eval(
     return append(lines, line_num, "GUI_EVAL", quote_gui_token(str(script or "")))
 
 
+def _expand_gui_cookie(
+    *,
+    selector: str,
+    value: object | None,
+    lines: list[OqlLine],
+    line_num: int,
+    append: AppendFn,
+) -> int:
+    args = f"{quote_gui_token(selector)} {quote_gui_token(str(value) if value is not None else '')}"
+    return append(lines, line_num, "GUI_ASSERT_COOKIE", args.strip())
+
+
 def _expand_gui_custom(
     *,
     action: str,
@@ -294,6 +309,14 @@ def expand_gui_row(
             selector=selector,
             value=value,
             row=row,
+            lines=lines,
+            line_num=line_num,
+            append=append,
+        )
+    elif group == "cookie":
+        line_num = _expand_gui_cookie(
+            selector=selector,
+            value=value,
             lines=lines,
             line_num=line_num,
             append=append,
