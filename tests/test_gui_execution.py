@@ -142,6 +142,52 @@ class TestGuiExecution:
 
         assert interpreter.results[-1].status.value == "passed"
 
+    def test_gui_start_with_user_data_dir_dry_run(self, interpreter):
+        """Test GUI_START with browser.user_data_dir in dry-run mode."""
+        from testql.interpreter._parser import OqlLine
+
+        interpreter.vars.set("browser.user_data_dir", "/tmp/testql-profile")
+        line = OqlLine(
+            number=1,
+            command="GUI_START",
+            args='"http://localhost:5173"',
+            raw='GUI_START "http://localhost:5173"',
+        )
+        interpreter._cmd_gui_start(line.args, line)
+
+        assert interpreter.results[-1].status.value == "passed"
+
+    def test_gui_assert_cookie_dry_run(self, interpreter):
+        """Test GUI_ASSERT_COOKIE in dry-run mode."""
+        from testql.interpreter._parser import OqlLine
+
+        line = OqlLine(
+            number=1,
+            command="GUI_ASSERT_COOKIE",
+            args='"session_id" "abc123"',
+            raw='GUI_ASSERT_COOKIE "session_id" "abc123"',
+        )
+        interpreter._cmd_gui_assert_cookie(line.args, line)
+
+        assert interpreter.results[-1].status.value == "passed"
+        assert 'GUI_ASSERT_COOKIE "session_id" == "abc123"' in interpreter.results[-1].name
+
+    def test_gui_assert_cookie_no_session_error(self, interpreter):
+        """Test GUI_ASSERT_COOKIE without active session (non-dry-run)."""
+        interpreter.dry_run = False
+        from testql.interpreter._parser import OqlLine
+
+        line = OqlLine(
+            number=1,
+            command="GUI_ASSERT_COOKIE",
+            args='"session_id" "abc123"',
+            raw='GUI_ASSERT_COOKIE "session_id" "abc123"',
+        )
+        interpreter._cmd_gui_assert_cookie(line.args, line)
+
+        assert interpreter.results[-1].status.value == "error"
+        assert "No active GUI session" in interpreter.results[-1].message
+
     def test_gui_click_no_session_error(self, interpreter):
         """Test GUI_CLICK without active session (non-dry-run)."""
         interpreter.dry_run = False

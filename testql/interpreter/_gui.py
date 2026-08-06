@@ -264,6 +264,12 @@ class GuiMixin:
         For web apps, use base_url instead.
         For desktop apps, provide executable path or electron app path.
 
+        A custom browser profile/user-data directory can be supplied via the
+        `browser.user_data_dir` variable (Chromium/Chrome persistent profile):
+
+            SET browser.user_data_dir "/path/to/profile"
+            GUI_START "http://localhost:5173"
+
         Examples:
             GUI_START "http://localhost:5173"  # Web app
             GUI_START "/path/to/electron-app"
@@ -277,7 +283,9 @@ class GuiMixin:
         extra_args = parts[1] if len(parts) > 1 else ""
 
         if self.dry_run:
-            self.out.step("🖥️", f'GUI_START "{app_path[:50]}" (dry-run)')
+            user_data_dir = self.vars.get("browser.user_data_dir")
+            suffix = f" (user_data_dir={user_data_dir})" if user_data_dir else ""
+            self.out.step("🖥️", f'GUI_START "{app_path[:50]}"{suffix} (dry-run)')
             self.results.append(StepResult(
                 name=f'GUI_START "{app_path[:40]}"', status=StepStatus.PASSED
             ))
@@ -317,7 +325,16 @@ class GuiMixin:
             operation_timeout = self._gui_operation_timeout()
             navigation_timeout = self._gui_operation_timeout(15000)
             executable_path = find_browser_executable()
+            user_data_dir = self.vars.get("browser.user_data_dir")
+            if user_data_dir:
+                user_data_dir_path = Path(user_data_dir).expanduser().resolve()
+                user_data_dir_path.mkdir(parents=True, exist_ok=True)
             if self._gui_playwright_backend == "node":
+                if user_data_dir:
+                    raise RuntimeError(
+                        "browser.user_data_dir is not supported with the Node Playwright backend; "
+                        "install the Python playwright package to use persistent profiles."
+                    )
                 if self._gui_node_playwright_path is None:
                     raise RuntimeError("project Node Playwright path is unavailable")
                 session = NodePlaywrightSession.start(
@@ -341,13 +358,30 @@ class GuiMixin:
                 }
                 if executable_path:
                     launch_options["executable_path"] = executable_path
-                browser = p.chromium.launch(**launch_options)
-                self._gui_page = browser.new_page()
-                self._gui_page.set_default_timeout(operation_timeout)
-                self._gui_page.set_default_navigation_timeout(navigation_timeout)
-                self._gui_page.goto(app_path, timeout=navigation_timeout)
-                self._gui_app = (p, browser)
-                self.out.step("🖥️", f"Playwright: Opened {app_path}")
+
+                if user_data_dir:
+                    context = p.chromium.launch_persistent_context(
+                        str(user_data_dir_path),
+                        **launch_options,
+                    )
+                    page = context.pages[0] if context.pages else context.new_page()
+                    page.set_default_timeout(operation_timeout)
+                    page.set_default_navigation_timeout(navigation_timeout)
+                    page.goto(app_path, timeout=navigation_timeout)
+                    self._gui_page = page
+                    self._gui_app = (p, context)
+                    self.out.step(
+                        "🖥️",
+                        f"Playwright: Opened {app_path} with user_data_dir={user_data_dir}",
+                    )
+                else:
+                    browser = p.chromium.launch(**launch_options)
+                    self._gui_page = browser.new_page()
+                    self._gui_page.set_default_timeout(operation_timeout)
+                    self._gui_page.set_default_navigation_timeout(navigation_timeout)
+                    self._gui_page.goto(app_path, timeout=navigation_timeout)
+                    self._gui_app = (p, browser)
+                    self.out.step("🖥️", f"Playwright: Opened {app_path}")
         else:
             path = Path(app_path).expanduser()
             if path.is_file():
@@ -960,6 +994,78 @@ class GuiMixin:
         except Exception as e:
             self.out.fail(f"{name} error: {e}")
             self.results.append(StepResult(name=name, status=StepStatus.ERROR, message=str(e)))
+
+    def _cmd_gui_assert_cookie(self, args: str, line: OqlLine) -> None:
+        """GUI_ASSERT_COOKIE "name" "expected_value" — Assert a browser cookie value.
+
+        Checks the Playwright/Selenium cookie jar for the current page context.
+        Useful for verifying that a browser profile (user_data_dir) was loaded
+        correctly and the session state is present.
+
+        Example:
+            GUI_ASSERT_COOKIE "session_id" "abc123"
+        """
+        try:
+            parts = shlex.split(args)
+        except ValueError:
+            parts = args.strip().split()
+        if len(parts) != 2:
+            self.out.fail(f"L{line.number}: GUI_ASSERT_COOKIE requires 'name' 'expected_value'")
+            self.results.append(StepResult(
+                name="GUI_ASSERT_COOKIE",
+                status=StepStatus.ERROR,
+                message="requires name and expected_value",
+            ))
+            return
+
+        name, expected = parts[0].strip('"\''), parts[1].strip('"\'')
+        display_name = f'GUI_ASSERT_COOKIE "{name}" == "{expected[:40]}"'
+
+        if self.dry_run:
+            self.out.step("🍪", f"{display_name} (dry-run)")
+            self.results.append(StepResult(name=display_name, status=StepStatus.PASSED))
+            return
+
+        if not self._gui_page:
+            self.out.fail("GUI_ASSERT_COOKIE: No active GUI session")
+            self.results.append(StepResult(
+                name=display_name,
+                status=StepStatus.ERROR,
+                message="No active GUI session",
+            ))
+            return
+
+        try:
+            actual = ""
+            if self._gui_driver == "playwright":
+                cookies = self._gui_page.context.cookies()
+                for cookie in cookies:
+                    if cookie.get("name") == name:
+                        actual = str(cookie.get("value", ""))
+                        break
+            elif self._gui_driver == "selenium":
+                raw = self._gui_app.get_cookie(name)
+                actual = str(raw.get("value", "")) if raw else ""
+            else:
+                actual = ""
+
+            if actual == expected:
+                self.out.step("🍪", f"{display_name} → OK")
+                self.results.append(StepResult(
+                    name=display_name, status=StepStatus.PASSED, message=actual
+                ))
+            else:
+                self.out.step("❌", f"{display_name} (got '{actual[:40]}')")
+                self.results.append(StepResult(
+                    name=display_name,
+                    status=StepStatus.FAILED,
+                    message=f"Expected '{expected}', got '{actual}'",
+                ))
+        except Exception as e:
+            self.out.fail(f"GUI_ASSERT_COOKIE error: {e}")
+            self.results.append(StepResult(
+                name=display_name, status=StepStatus.ERROR, message=str(e)
+            ))
 
     def _parse_count_assertion_args(self, args: str) -> tuple[str, str, int] | None:
         """Parse ASSERT_COUNT args.
