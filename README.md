@@ -115,6 +115,19 @@ print(result.to_dict())  # testql.verification-result.v1
 
 Packaged JSON Schemas are available through `verification_contract_schema()`.
 
+### Versioned LLM contracts
+
+The live `nlp2env` path accepts only the versioned `ToolCall 1.0.0` response.
+Its GBNF, Protobuf, JSON Schema and boundary manifest are packaged under
+`testql/contracts/nlp2env/v1`. OpenRouter receives the schema through
+`response_format`, Ollama through `format`, and TestQL validates the complete
+JSON response again before invoking MCP. Markdown fences, surrounding prose,
+unknown tools, literal password fields and contract-version drift fail closed.
+
+Set `OPENROUTER_APP_NAME` to identify TestQL in OpenRouter logs. If it is not
+set, TestQL uses the current project folder name. See `.env.example` for the
+GLM 5.2 defaults.
+
 
 ## Artifact Discovery, Topology, and Web Inspection
 
