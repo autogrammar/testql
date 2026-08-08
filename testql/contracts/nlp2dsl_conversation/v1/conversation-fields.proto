@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package testql.contracts.nlp2dsl_conversation.v1;
+
+message ConversationFields {
+  string contract_version = 1 [json_name = "contractVersion"];
+  map<string, string> fields = 2;
+}
