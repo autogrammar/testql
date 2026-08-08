@@ -72,7 +72,7 @@ def _extract_json_object(text: str) -> dict[str, Any]:
     except json.JSONDecodeError as exc:
         raise ValueError("LLM response must be a single JSON object") from exc
     if not isinstance(parsed, dict):
-        raise ValueError("LLM response must be a JSON object")
+        raise TypeError("LLM response must be a JSON object")
     validate_tool_call(parsed)
     return parsed
 
@@ -85,9 +85,12 @@ def _openrouter_headers(api_key: str) -> dict[str, str]:
         "Authorization": f"Bearer {api_key}",
         "X-Title": app_name,
     }
-    site_url = os.getenv("OPENROUTER_SITE_URL", "").strip()
-    if site_url:
-        headers["HTTP-Referer"] = site_url
+    app_url = (
+        os.getenv("OPENROUTER_APP_URL", "").strip()
+        or os.getenv("OPENROUTER_SITE_URL", "").strip()
+    )
+    if app_url:
+        headers["HTTP-Referer"] = app_url
     return headers
 
 

@@ -71,6 +71,7 @@ def test_openrouter_request_uses_schema_app_name_and_normalized_model(
     project = tmp_path / "dialog-app"
     project.mkdir()
     monkeypatch.chdir(project)
+    monkeypatch.setenv("OPENROUTER_APP_URL", "https://example.test/dialog")
     monkeypatch.delenv("OPENROUTER_APP_NAME", raising=False)
     captured: dict = {}
 
@@ -97,6 +98,7 @@ def test_openrouter_request_uses_schema_app_name_and_normalized_model(
     )
     assert provider.reply_for("conv", missing=["recipient"]) == {"recipient": "a@b.c"}
     assert captured["headers"]["x-title"] == "dialog-app"
+    assert captured["headers"]["http-referer"] == "https://example.test/dialog"
     assert captured["payload"]["model"] == "z-ai/glm-5.2"
     assert (
         captured["payload"]["response_format"]["json_schema"]["schema"] == load_schema()

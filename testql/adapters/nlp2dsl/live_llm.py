@@ -23,7 +23,7 @@ class LiveLLMProvider:
     extra_headers: dict[str, str] = field(default_factory=dict)
 
     @classmethod
-    def from_env(cls) -> "LiveLLMProvider":
+    def from_env(cls) -> LiveLLMProvider:
         api_key = (
             os.environ.get("OPENROUTER_API_KEY") or os.environ.get("LLM_API_KEY") or ""
         )
@@ -85,9 +85,12 @@ class LiveLLMProvider:
             or "testql",
             **self.extra_headers,
         }
-        site_url = os.environ.get("OPENROUTER_SITE_URL", "").strip()
-        if site_url and "HTTP-Referer" not in headers:
-            headers["HTTP-Referer"] = site_url
+        app_url = (
+            os.environ.get("OPENROUTER_APP_URL", "").strip()
+            or os.environ.get("OPENROUTER_SITE_URL", "").strip()
+        )
+        if app_url and "HTTP-Referer" not in headers:
+            headers["HTTP-Referer"] = app_url
         payload = {
             "model": self.model.removeprefix("openrouter/"),
             "messages": [{"role": "user", "content": prompt}],
@@ -114,6 +117,6 @@ class LiveLLMProvider:
         except json.JSONDecodeError as exc:
             raise ValueError("live LLM response must be a single JSON object") from exc
         if not isinstance(parsed, dict):
-            raise ValueError("live LLM response must be a JSON object")
+            raise TypeError("live LLM response must be a JSON object")
         validate_payload(parsed)
         return parsed
