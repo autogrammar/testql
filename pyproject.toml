@@ -84,6 +84,9 @@ testql = [
     "contracts/nlp2env/v1/*.gbnf",
     "contracts/nlp2env/v1/*.json",
     "contracts/nlp2env/v1/*.proto",
+    "contracts/nlp2dsl_conversation/v1/*.gbnf",
+    "contracts/nlp2dsl_conversation/v1/*.json",
+    "contracts/nlp2dsl_conversation/v1/*.proto",
     "data/*.json",
     "interpreter/*.cjs",
 ]

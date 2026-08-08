@@ -51,6 +51,7 @@ def test_openrouter_request_uses_schema_and_project_app_name(
     project.mkdir()
     monkeypatch.chdir(project)
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    monkeypatch.setenv("OPENROUTER_APP_URL", "https://example.test/testql")
     monkeypatch.delenv("OPENROUTER_APP_NAME", raising=False)
     captured: dict = {}
 
@@ -67,6 +68,7 @@ def test_openrouter_request_uses_schema_and_project_app_name(
         {},
     )
     assert captured["headers"]["X-Title"] == "customer-project"
+    assert captured["headers"]["HTTP-Referer"] == "https://example.test/testql"
     assert (
         captured["payload"]["response_format"]["json_schema"]["schema"] == load_schema()
     )

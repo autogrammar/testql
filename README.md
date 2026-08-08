@@ -128,6 +128,10 @@ Set `OPENROUTER_APP_NAME` to identify TestQL in OpenRouter logs. If it is not
 set, TestQL uses the current project folder name. See `.env.example` for the
 GLM 5.2 defaults.
 
+The optional live nlp2dsl conversation provider similarly uses
+`ConversationFields 1.0.0`. It returns only requested missing fields, while
+preserving the existing plain field mapping passed into `llmContext`.
+
 
 ## Artifact Discovery, Topology, and Web Inspection
 
