@@ -13,6 +13,7 @@ dependencies = [
     "click>=8.0",
     "rich>=13.0",
     "pyyaml>=6.0",
+    "jsonschema>=4.21",
     "goal>=2.1.0",
     "costs>=0.1.20",
     "pfix>=0.1.60",
@@ -79,7 +80,13 @@ dev = ["pytest", "pytest-asyncio", "pytest-cov",
 include = ["testql*"]
 
 [tool.setuptools.package-data]
-testql = ["data/*.json", "interpreter/*.cjs"]
+testql = [
+    "contracts/nlp2env/v1/*.gbnf",
+    "contracts/nlp2env/v1/*.json",
+    "contracts/nlp2env/v1/*.proto",
+    "data/*.json",
+    "interpreter/*.cjs",
+]
 
 [tool.uv.sources]
 vdisplay = { path = "../../wronai/vdisplay", editable = true }

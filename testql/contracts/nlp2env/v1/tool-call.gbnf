@@ -1,0 +1,17 @@
+root ::= ws "{" ws version ws "," ws call ws "}" ws
+version ::= "\"contractVersion\"" ws ":" ws "\"1.0.0\""
+call ::= set-email | status | list
+
+set-email ::= "\"tool\"" ws ":" ws "\"nlp2env_set_email\"" ws "," ws "\"arguments\"" ws ":" ws "{" ws email-pair (ws "," ws email-pair)* ws "}"
+status ::= "\"tool\"" ws ":" ws "\"nlp2env_email_status\"" ws "," ws empty-arguments
+list ::= "\"tool\"" ws ":" ws "\"nlp2env_list\"" ws "," ws empty-arguments
+empty-arguments ::= "\"arguments\"" ws ":" ws "{" ws "}"
+email-pair ::= regular-pair | password-pair
+regular-pair ::= regular-key ws ":" ws string
+regular-key ::= "\"host\"" | "\"user\"" | "\"port\"" | "\"from_addr\""
+password-pair ::= "\"password_env\"" ws ":" ws "\"SMTP_PASSWORD\""
+
+string ::= "\"" char* "\""
+char ::= [^"\\\x00-\x1f] | "\\" (["\\/bfnrt] | "u" hex hex hex hex)
+hex ::= [0-9a-fA-F]
+ws ::= [ \t\n\r]*

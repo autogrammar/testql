@@ -1,0 +1,19 @@
+{
+  "contract": "testql.nlp2env.ToolCall",
+  "version": "1.0.0",
+  "boundary": "testql.nlp2env.llm.translate_nl_to_mcp",
+  "mediaType": "application/json",
+  "artifacts": {
+    "grammar": "tool-call.gbnf",
+    "protobuf": "tool-call.proto",
+    "schema": "tool-call.schema.json"
+  },
+  "providers": {
+    "openrouter": "response_format.json_schema",
+    "ollama": "format"
+  },
+  "runtime": {
+    "parser": "testql.nlp2env.llm._extract_json_object",
+    "validator": "testql.contracts.nlp2env.validate_tool_call"
+  }
+}
