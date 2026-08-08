@@ -1,0 +1,7 @@
+{
+  "contractVersion": "1.0.0",
+  "fields": {
+    "attachmentPath": "/tmp/invoice.pdf",
+    "recipient": "test@example.com"
+  }
+}

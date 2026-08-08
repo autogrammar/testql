@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://testql.dev/contracts/nlp2dsl-conversation/v1/conversation-fields.schema.json",
+  "title": "TestQL ConversationFields v1",
+  "type": "object",
+  "required": ["contractVersion", "fields"],
+  "properties": {
+    "contractVersion": { "const": "1.0.0" },
+    "fields": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 32,
+      "propertyNames": {
+        "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "maxLength": 8000
+      }
+    }
+  },
+  "additionalProperties": false
+}
