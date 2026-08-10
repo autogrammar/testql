@@ -1,0 +1,11 @@
+{
+  "contractVersion": "1.0.0",
+  "tool": "nlp2env_set_email",
+  "arguments": {
+    "host": "smtp.example.com",
+    "user": "user@example.com",
+    "port": "587",
+    "from_addr": "user@example.com",
+    "password_env": "SMTP_PASSWORD"
+  }
+}

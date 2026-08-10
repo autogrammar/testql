@@ -1,0 +1,9 @@
+root ::= ws "{" ws version ws "," ws fields ws "}" ws
+version ::= "\"contractVersion\"" ws ":" ws "\"1.0.0\""
+fields ::= "\"fields\"" ws ":" ws "{" ws pair (ws "," ws pair)* ws "}"
+pair ::= string ws ":" ws string
+
+string ::= "\"" char* "\""
+char ::= [^"\\\x00-\x1f] | "\\" (["\\/bfnrt] | "u" hex hex hex hex)
+hex ::= [0-9a-fA-F]
+ws ::= [ \t\n\r]*

@@ -1,0 +1,8 @@
+{
+  "contractVersion": "1.0.0",
+  "tool": "nlp2env_set_email",
+  "arguments": {
+    "host": "smtp.example.com",
+    "password": "literal-secret"
+  }
+}

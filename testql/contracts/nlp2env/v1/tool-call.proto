@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package testql.contracts.nlp2env.v1;
+
+message ToolCall {
+  string contract_version = 1 [json_name = "contractVersion"];
+  Tool tool = 2;
+  Arguments arguments = 3;
+}
+
+enum Tool {
+  tool_unspecified = 0;
+  nlp2env_set_email = 1;
+  nlp2env_email_status = 2;
+  nlp2env_list = 3;
+}
+
+message Arguments {
+  string host = 1;
+  string user = 2;
+  string port = 3;
+  string from_addr = 4;
+  string password_env = 5;
+}

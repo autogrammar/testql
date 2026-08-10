@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://testql.dev/contracts/nlp2env/v1/tool-call.schema.json",
+  "title": "nlp2env ToolCall v1",
+  "type": "object",
+  "required": ["contractVersion", "tool", "arguments"],
+  "properties": {
+    "contractVersion": { "const": "1.0.0" },
+    "tool": {
+      "enum": ["nlp2env_set_email", "nlp2env_email_status", "nlp2env_list"]
+    },
+    "arguments": { "type": "object" }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "tool": { "const": "nlp2env_set_email" },
+        "arguments": {
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "host": { "type": "string", "minLength": 1, "maxLength": 253 },
+            "user": { "type": "string", "minLength": 1, "maxLength": 320 },
+            "port": { "type": "string", "pattern": "^[0-9]{1,5}$" },
+            "from_addr": { "type": "string", "minLength": 1, "maxLength": 320 },
+            "password_env": { "const": "SMTP_PASSWORD" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "tool": { "enum": ["nlp2env_email_status", "nlp2env_list"] },
+        "arguments": { "type": "object", "maxProperties": 0 }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

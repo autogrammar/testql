@@ -1,0 +1,16 @@
+{
+  "contract": "testql.nlp2dsl.ConversationFields",
+  "version": "1.0.0",
+  "boundary": "testql.adapters.nlp2dsl.live_llm.LiveLLMProvider.reply_for",
+  "mediaType": "application/json",
+  "artifacts": {
+    "grammar": "conversation-fields.gbnf",
+    "protobuf": "conversation-fields.proto",
+    "schema": "conversation-fields.schema.json"
+  },
+  "provider": "response_format.json_schema",
+  "runtime": {
+    "parser": "testql.adapters.nlp2dsl.live_llm.LiveLLMProvider._parse_json_object",
+    "validator": "testql.contracts.nlp2dsl_conversation.validate_payload"
+  }
+}

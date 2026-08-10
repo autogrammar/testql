@@ -7,7 +7,11 @@ import os
 import httpx
 import pytest
 
-from testql.adapters.nlp2dsl import LiveLLMProvider, live_llm_enabled, resolve_llm_provider
+from testql.adapters.nlp2dsl import (
+    LiveLLMProvider,
+    live_llm_enabled,
+    resolve_llm_provider,
+)
 from testql.adapters.nlp2dsl.mock_llm import MockLLMProvider
 from testql.conversation import ConversationRunner
 
@@ -34,10 +38,10 @@ class TestLLMProviderResolution:
 
 
 class TestLiveLLMParsing:
-    def test_parse_json_object_strips_fence(self):
+    def test_parse_json_object_rejects_fence(self):
         raw = '```json\n{"attachmentPath": "/tmp/x.pdf"}\n```'
-        parsed = LiveLLMProvider._parse_json_object(raw)
-        assert parsed["attachmentPath"] == "/tmp/x.pdf"
+        with pytest.raises(ValueError, match="single JSON object"):
+            LiveLLMProvider._parse_json_object(raw)
 
 
 @pytest.mark.live_llm
@@ -67,16 +71,22 @@ def test_conversation_runner_with_live_llm_smoke():
 
     from testql.ir import Capture, Nlp2DslStep, TestPlan
 
-    plan = TestPlan(steps=[
-        Nlp2DslStep(endpoint="chatstart", payload={"userId": "live-test"}, captures=[
-            Capture(var_name="conversationId", from_path="conversationId"),
-        ]),
-        Nlp2DslStep(
-            endpoint="chatmessage",
-            payload={"conversationId": "${conversationId}", "text": "ping"},
-            mock_llm={},
-        ),
-    ])
+    plan = TestPlan(
+        steps=[
+            Nlp2DslStep(
+                endpoint="chatstart",
+                payload={"userId": "live-test"},
+                captures=[
+                    Capture(var_name="conversationId", from_path="conversationId"),
+                ],
+            ),
+            Nlp2DslStep(
+                endpoint="chatmessage",
+                payload={"conversationId": "${conversationId}", "text": "ping"},
+                mock_llm={},
+            ),
+        ]
+    )
     runner = ConversationRunner(api_url=nlp2dsl_url, live_llm=True)
     result = runner.run(plan)
     assert any(t.kind == "nlp2dsl" for t in result.turns)
