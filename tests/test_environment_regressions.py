@@ -16,7 +16,7 @@ NAVIGATE[2]{path, wait_ms}:
 
     commands = [line.command for line in convert_testtoon_to_oql(source).lines]
 
-    assert commands == ["GUI_START", "WAIT", "NAVIGATE", "WAIT"]
+    assert commands == ["GUI_START", "WAIT", "GUI_NAVIGATE", "WAIT"]
 
 
 def test_shell_result_keeps_bounded_stdout_and_stderr():

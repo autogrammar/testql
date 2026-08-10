@@ -52,9 +52,20 @@ def _api_section_to_steps(section: ToonSection) -> list[Step]:
         status = row.get("status") or row.get("expect_status")
         if status is not None:
             asserts.append(Assertion(field="status", op="==", expected=status))
-        ak, av = row.get("assert_key"), row.get("assert_value") or row.get("assert_val")
-        if ak and av:
-            asserts.append(Assertion(field=str(ak), op="==", expected=av))
+        ak = row.get("assert_key")
+        av = row.get("assert_value")
+        if av is None:
+            av = row.get("assert_val")
+        if ak and av is not None:
+            # ApiStep executors wrap the decoded response under ``data``.
+            # TestTOON's compact API syntax historically addresses response
+            # fields directly (``ok`` / ``nested.value``), so normalize them
+            # to the IR payload and preserve typed booleans/numbers.
+            asserts.append(Assertion(
+                field=_assert_json_field(str(ak)),
+                op="==",
+                expected=_coerce_assert_expected(av),
+            ))
         name = str(row.get("name", "")).strip() or None
         steps.append(ApiStep(
             name=name,

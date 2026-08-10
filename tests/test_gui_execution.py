@@ -433,9 +433,10 @@ class TestGuiDriverSelection:
         """Test default driver is playwright."""
         assert interpreter._gui_driver is None
         interpreter.vars.set("gui_driver", "playwright")
-        # Mock playwright import to simulate it not being installed
+        # Mock playwright import and node playwright to simulate it not being installed
         import sys
         monkeypatch.setitem(sys.modules, "playwright.sync_api", None)
+        monkeypatch.setattr("testql.interpreter._gui.find_node_playwright", lambda: None)
         assert interpreter._init_gui_driver() is False  # Returns False if not installed (dry-run)
 
     def test_gui_driver_selenium_fallback(self, interpreter, monkeypatch):
@@ -451,6 +452,7 @@ class TestGuiDriverSelection:
         import sys
         interpreter.vars.set("gui_driver", "playwright")
         monkeypatch.setitem(sys.modules, "playwright.sync_api", None)
+        monkeypatch.setattr("testql.interpreter._gui.find_node_playwright", lambda: None)
         assert interpreter._init_gui_driver() is False
         assert interpreter._gui_engine_unavailable is True
 
@@ -462,6 +464,7 @@ class TestGuiDriverSelection:
         interp = OqlInterpreter(api_url="http://localhost:8101", quiet=True, dry_run=False)
         interp.vars.set("gui_driver", "playwright")
         monkeypatch.setitem(sys.modules, "playwright.sync_api", None)
+        monkeypatch.setattr("testql.interpreter._gui.find_node_playwright", lambda: None)
 
         line = OqlLine(number=1, command="GUI_START", args='"http://localhost:5173"',
                        raw='GUI_START "http://localhost:5173"')

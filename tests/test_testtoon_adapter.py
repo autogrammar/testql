@@ -83,6 +83,21 @@ class TestParse:
         api = [s for s in plan.steps if isinstance(s, ApiStep)]
         assert any(a.field == "status" and a.expected == 200 for a in api[0].asserts)
 
+    def test_api_inline_assert_targets_response_data_and_coerces_boolean(self):
+        plan = parse("""\
+# SCENARIO: native-run-ir-regression
+# TYPE: api
+
+API[2]{method, endpoint, status, assert_key, assert_value}:
+  GET, /health, 200, ok, true
+  GET, /health, 200, nested.enabled, false
+""")
+        api = [s for s in plan.steps if isinstance(s, ApiStep)]
+        assert api[0].asserts[-1].field == "data.ok"
+        assert api[0].asserts[-1].expected is True
+        assert api[1].asserts[-1].field == "data.nested.enabled"
+        assert api[1].asserts[-1].expected is False
+
     def test_navigate_step(self):
         plan = parse(SAMPLE)
         nav = [s for s in plan.steps if isinstance(s, GuiStep) and s.action == "navigate"]

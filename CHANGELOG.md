@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Restore the TestTOON adapter/interpreter import path after source modules were
+  accidentally left empty, so `python -m testql run-ir` starts normally.
+- Normalize compact API `assert_key` fields into the IR response `data` envelope
+  and preserve typed boolean/number expectations.
+- Align the environment navigation regression with the canonical
+  `GUI_NAVIGATE` command emitted after `GUI_START`.
+
 ## [1.2.67] - 2026-07-30
 
 ### Fixed
