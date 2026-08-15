@@ -35,22 +35,22 @@
     {
       "path": "packages/dsl2testql/src/dsl2testql/schema/commands/generate.schema.json",
       "role": "normative-source",
-      "digest": "sha256:0fe9d02905d099a95cead96205ce82bac418c6e3a1cb6a4620fc2332b5056c5c"
+      "digest": "sha256:ea9674f8afb466f1d24a2509a499cda83b52264eedf50f315068fa6673b3b288"
     },
     {
       "path": "packages/dsl2testql/src/dsl2testql/schema/commands/patch.schema.json",
       "role": "schema",
-      "digest": "sha256:a0245ddfb8f659a9b7f6c55f955582f6f568733e3db5aef7f15fc977faeea4e8"
+      "digest": "sha256:d4116dd8cdb47ced8d8522957626c6bf2665ea86b53ac49c32bce94ff23f2285"
     },
     {
       "path": "packages/dsl2testql/src/dsl2testql/schema/commands/query.schema.json",
       "role": "schema",
-      "digest": "sha256:81244346943aab5e9ba62647495b89cf74a9864ff96b191c63cdb2142b579db2"
+      "digest": "sha256:7c9786d6b92f5840c4fdd891abd4d7f8828181e503604d0c7bf87176854d04c4"
     },
     {
       "path": "packages/dsl2testql/src/dsl2testql/schema/commands/validate.schema.json",
       "role": "schema",
-      "digest": "sha256:bc8c37e08ca0fd465271b8b41e8fe65963ce55e78a371d8a198aad726634cb26"
+      "digest": "sha256:ab18b012cf3eaa57fae1ef15eaf5dfcfd39a25b903f0395a5e723514bd0262ad"
     },
     {
       "path": "README.md",
