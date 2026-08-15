@@ -1,15 +1,35 @@
-# SCENARIO: Purple SaaS portal login (email OTP, no org slug)
+# SCENARIO: Purple SaaS portal login (two-step email OTP, no org slug)
 # TYPE: gui
 # VERSION: 1.0
 # Current contract: SPA query ?action=login — not /login (that path is 404 JSON).
+# Step 1 first paint: #loginEmail + „Wyślij hasło na e-mail” + #loginHaveCode.
+# OTP (#loginOtp) is not in the DOM yet (not required).
+# Step 2 after 202: NXDOMAIN mailbox only — no real mail, never assert OTP codes.
 
-GUI[9]{action, selector, value, wait_ms}:
+GUI[26]{action, selector, value, wait_ms}:
   navigate, -, http://127.0.0.1:8791/?lang=pl&action=login, 400
   wait_for_count, #loginEmail, 1, 8000
   assert_visible, #loginEmail, -, -
+  assert_count, #loginSlug, 0, -
   assert_count, #regSlug, 0, -
   assert_count, #loginOtp, 0, -
+  eval, -, var o=document.querySelector('#loginOtp'); if(o && o.required) throw new Error('otp-required-too-soon'), -
+  assert_visible, #loginHaveCode, -, -
+  assert_text, form.auth-form, Wyślij hasło na e-mail, -
+  assert_text, form.auth-form, Mam już hasło, -
   assert_text, body, Logowanie do panelu operacyjnego, -
   assert_url_param, action, login, -
   assert_url_param, lang, pl, -
+  input, #loginEmail, nobody@no-mx.testql.invalid, -
+  click, form.auth-form button[type=submit], -, 400
+  wait_for_count, #loginOtp, 1, 8000
+  assert_visible, #loginOtp, -, -
+  assert_visible, #loginResend, -, -
+  assert_count, #loginHaveCode, 0, -
+  assert_text, form.auth-form, Zaloguj się, -
+  assert_text, form.auth-form, Wyślij ponownie, -
+  assert_text, form.auth-form, NXDOMAIN, -
+  assert_text, form.auth-form, Wysyłka, -
+  assert_text, form.auth-form, Jeśli adres może korzystać z Subactor, -
+  eval, -, var b=document.querySelector('#loginResend'); if(!b) throw new Error('resend-missing'); if(!b.disabled) throw new Error('resend-not-cooling'), -
   stop, -, -, -

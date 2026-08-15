@@ -29,3 +29,10 @@ API[24]{method, endpoint, status, contains, optional}:
   GET, http://127.0.0.1:18443/, 400, HTTPS, -
   GET, https://127.0.0.1:18443/, 200, -, true
   GET, https://sub.actor/, 200, Subactor, true
+
+# OTP access: NXDOMAIN mailbox — no real mail, no OTP in assertions.
+# Public copy stays generic (accepted / Subactor); MX fail is nxdomain.
+API[3]{method, endpoint, status, contains, optional, body}:
+  POST, http://127.0.0.1:8791/api/saas/access/diagnose, 200, nxdomain, -, {"email":"nobody@no-mx.testql.invalid"}
+  POST, http://127.0.0.1:8791/api/saas/access/request, 202, accepted, -, {"email":"nobody@no-mx.testql.invalid"}
+  POST, http://127.0.0.1:8791/api/saas/access/diagnose, 422, email_invalid, -, {}
