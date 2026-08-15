@@ -1,0 +1,26 @@
+# SCENARIO: Purple SaaS portal register (org slug still present) + EN promo URL
+# TYPE: gui
+# VERSION: 1.0
+# Live register is SPA query params on /, not /en/register (that path is 404).
+
+GUI[9]{action, selector, value, wait_ms}:
+  navigate, -, http://127.0.0.1:8791/?lang=pl&plan=saas-start&action=register, 400
+  wait_for_count, #regSlug, 1, 8000
+  assert_visible, #regEmail, -, -
+  assert_visible, #regSlug, -, -
+  assert_text, body, Załóż konto Subactor, -
+  assert_url_param, action, register, -
+  assert_url_param, plan, saas-start, -
+  assert_url_param, lang, pl, -
+  stop, -, -, -
+
+GUI[9]{action, selector, value, wait_ms}:
+  navigate, -, http://127.0.0.1:8791/?lang=en&plan=saas-start&promo=NOCC100&action=register, 400
+  wait_for_count, #regSlug, 1, 8000
+  assert_visible, #regSlug, -, -
+  assert_visible, #regPromo, -, -
+  assert_value, #regPromo, NOCC100, -
+  assert_text, body, Create your Subactor account, -
+  assert_url_param, lang, en, -
+  assert_url_param, promo, NOCC100, -
+  stop, -, -, -

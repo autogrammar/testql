@@ -1,0 +1,15 @@
+# SCENARIO: Purple SaaS portal login (email OTP, no org slug)
+# TYPE: gui
+# VERSION: 1.0
+# Current contract: SPA query ?action=login — not /login (that path is 404 JSON).
+
+GUI[9]{action, selector, value, wait_ms}:
+  navigate, -, http://127.0.0.1:8791/?lang=pl&action=login, 400
+  wait_for_count, #loginEmail, 1, 8000
+  assert_visible, #loginEmail, -, -
+  assert_count, #regSlug, 0, -
+  assert_count, #loginOtp, 0, -
+  assert_text, body, Logowanie do panelu operacyjnego, -
+  assert_url_param, action, login, -
+  assert_url_param, lang, pl, -
+  stop, -, -, -

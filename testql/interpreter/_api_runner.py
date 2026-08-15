@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import ssl
 import time
 import urllib.error
 import urllib.request
@@ -11,6 +12,63 @@ from typing import Any
 from testql.base import StepResult, StepStatus
 
 from ._parser import OqlLine
+
+_HTML_SNIPPET_LIMIT = 8192
+_OPTIONAL_TOKENS = frozenset({"optional", "true", "yes", "1"})
+
+
+def _is_optional_flag(value: object) -> bool:
+    """Return True for TestTOON/OQL optional markers (true/yes/1/optional)."""
+    if value is True:
+        return True
+    if value is False or value is None:
+        return False
+    return str(value).strip().lower() in _OPTIONAL_TOKENS
+
+
+def _split_optional_api_args(args: str) -> tuple[str, bool]:
+    """Strip a trailing ``optional`` token from API args without eating JSON bodies."""
+    stripped = args.strip()
+    if stripped.lower().endswith(" optional"):
+        return stripped[: -len(" optional")].rstrip(), True
+    return stripped, False
+
+
+def _parse_response_body(text: str) -> dict[str, Any]:
+    """Parse JSON when possible; otherwise keep a bounded text snippet."""
+    try:
+        parsed = json.loads(text)
+    except Exception:
+        return {"text": text[:_HTML_SNIPPET_LIMIT]}
+    if isinstance(parsed, dict):
+        return parsed
+    return {"data": parsed}
+
+
+def _is_unreachable_error(exc: BaseException) -> bool:
+    """True when the target never produced an HTTP status (down, TLS, DNS, timeout)."""
+    if isinstance(exc, urllib.error.HTTPError):
+        return False
+    if isinstance(exc, (TimeoutError, ConnectionError, ssl.SSLError, OSError)):
+        return True
+    if isinstance(exc, urllib.error.URLError):
+        reason = getattr(exc, "reason", None)
+        if isinstance(reason, urllib.error.HTTPError):
+            return False
+        return True
+    text = str(exc).lower()
+    needles = (
+        "timed out",
+        "timeout",
+        "connection refused",
+        "name or service not known",
+        "temporary failure in name resolution",
+        "ssl",
+        "tlsv1",
+        "certificate",
+        "network is unreachable",
+    )
+    return any(needle in text for needle in needles)
 
 
 class ApiRunnerMixin:
@@ -21,11 +79,19 @@ class ApiRunnerMixin:
     dry_run: bool
     last_response: dict[str, Any] | None
     last_status: int
+    _skip_response_asserts: bool = False
+    _skip_response_reason: str = ""
 
     # Retry configuration
     retry_max_attempts: int = 3
     retry_backoff_ms: int = 1000
     retry_status_codes: set[int] = {429, 500, 502, 503, 504}
+
+    def _http_timeout_s(self) -> float:
+        configured = getattr(self, "timeout_ms", None)
+        if configured:
+            return max(1.0, float(configured) / 1000.0)
+        return 8.0
 
     # ── Internal helpers ──────────────────────────────────────────────────────
 
@@ -34,17 +100,13 @@ class ApiRunnerMixin:
         req_body = json.dumps(body_data).encode("utf-8") if body_data else None
         req = urllib.request.Request(
             url, data=req_body, method=method,
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "Accept": "*/*"},
         )
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=self._http_timeout_s()) as resp:
             status = resp.status
             headers = dict(resp.headers)
-            text = resp.read().decode("utf-8")
-            try:
-                data = json.loads(text)
-            except Exception:
-                data = {"text": text[:500]}
-            return status, data, headers
+            text = resp.read().decode("utf-8", errors="replace")
+            return status, _parse_response_body(text), headers
 
     def _do_http_request_with_retry(self, method: str, url: str, body_data: dict | None) -> tuple[int, dict, dict]:
         """Execute HTTP request with retry logic for transient failures."""
@@ -63,17 +125,18 @@ class ApiRunnerMixin:
 
                 return status, data, headers
 
-            except (urllib.error.URLError, urllib.error.HTTPError) as e:
+            except urllib.error.HTTPError as e:
                 last_exception = e
-                if hasattr(e, 'code') and e.code in self.retry_status_codes and attempt < self.retry_max_attempts:
+                if e.code in self.retry_status_codes and attempt < self.retry_max_attempts:
                     backoff = self.retry_backoff_ms * attempt
                     self.out.warn(f"Retry {attempt}/{self.retry_max_attempts} for {e.code} (wait {backoff}ms)")
                     time.sleep(backoff / 1000)
                     continue
-                # Re-raise non-retryable errors
                 raise
-            except Exception:
-                # Non-retryable errors
+            except Exception as e:
+                last_exception = e
+                if _is_unreachable_error(e):
+                    raise
                 raise
 
         # All retries exhausted, raise last exception
@@ -120,8 +183,45 @@ class ApiRunnerMixin:
             name=label, status=StepStatus.ERROR, message=str(e),
         ))
 
+    def _clear_response_assert_skip(self) -> None:
+        self._skip_response_asserts = False
+        self._skip_response_reason = ""
+
+    def _record_unreachable(
+        self,
+        label: str,
+        exc: BaseException,
+        *,
+        optional: bool,
+    ) -> None:
+        """Store status 0 for a down/TLS/DNS target. Optional rows skip instead of fail later."""
+        reason = str(exc)
+        payload = {"ok": False, "error": "unreachable", "reason": reason[:500]}
+        self._store_api_response(0, payload)
+        if optional:
+            message = f"skipped: unreachable (optional): {reason[:180]}"
+            self._skip_response_asserts = True
+            self._skip_response_reason = message
+            self.out.step("⏭️", f"{label} → unreachable (optional)")
+            self.results.append(StepResult(
+                name=label,
+                status=StepStatus.SKIPPED,
+                message=message,
+                details={"status": 0, "body": payload},
+            ))
+            return
+        self._clear_response_assert_skip()
+        self.out.step("🔌", f"{label} → 0 unreachable")
+        self.results.append(StepResult(
+            name=label,
+            status=StepStatus.PASSED,
+            message=f"unreachable: {reason[:180]}",
+            details={"status": 0, "body": payload},
+        ))
+
     def _cmd_api(self, args: str, line: OqlLine) -> None:
-        """API METHOD /path [json-body]"""
+        """API METHOD /path [json-body] [optional]"""
+        args, optional = _split_optional_api_args(args)
         parts = args.strip().split(None, 2)
         if len(parts) < 2:
             self.out.fail(f"L{line.number}: API requires METHOD URL [body]")
@@ -143,6 +243,7 @@ class ApiRunnerMixin:
                 body_data = {"raw": body_str}
 
         label = f"API {method} {url}"
+        self._clear_response_assert_skip()
 
         if self.dry_run:
             self.out.step("🌐", f"{label} (dry-run)")
@@ -157,9 +258,8 @@ class ApiRunnerMixin:
         except urllib.error.HTTPError as e:
             error_body: dict[str, Any] = {}
             try:
-                raw = e.read().decode("utf-8")
-                parsed = json.loads(raw) if raw else {}
-                error_body = parsed if isinstance(parsed, dict) else {"text": raw[:500]}
+                raw = e.read().decode("utf-8", errors="replace")
+                error_body = _parse_response_body(raw) if raw else {}
             except Exception:
                 error_body = {}
             self._store_api_response(e.code, error_body)
@@ -171,6 +271,9 @@ class ApiRunnerMixin:
                 details={"status": e.code, "body": error_body},
             ))
         except Exception as e:
+            if _is_unreachable_error(e):
+                self._record_unreachable(label, e, optional=optional)
+                return
             self._record_api_error(label, e)
 
     def _cmd_capture(self, args: str, line: OqlLine) -> None:

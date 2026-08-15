@@ -1,0 +1,31 @@
+# SCENARIO: Subactor local ecosystem HTTP contracts (founder machine)
+# TYPE: api
+# VERSION: 1.0
+# Live URLs as of 2026-08-15. Optional rows skip when the target is unreachable
+# (TLS/DNS/connection). Status 0 means the required target is down.
+
+API[24]{method, endpoint, status, contains, optional}:
+  GET, http://127.0.0.1:8791/, 200, Subactor, -
+  GET, http://localhost:8791/, 200, Subactor, -
+  GET, http://127.0.0.1:8791/?action=login, 200, Subactor, -
+  GET, http://127.0.0.1:8791/?plan=saas-start&action=register, 200, Subactor, -
+  GET, http://127.0.0.1:8791/?lang=en&plan=saas-start&promo=NOCC100&action=register, 200, Subactor, -
+  GET, http://127.0.0.1:8791/en/register?plan=saas-start&promo=NOCC100, 404, not_found, -
+  GET, http://127.0.0.1:8026/, 200, Mailpit, -
+  GET, http://127.0.0.1:8026/api/v1/info, 200, Version, -
+  GET, http://127.0.0.1:18081/, 200, Subactor, -
+  GET, http://127.0.0.1:18081/api/me, 401, authentication-required, -
+  GET, http://127.0.0.1:18081/api/founder/daily-summary, 401, authentication-required, -
+  GET, http://127.0.0.1:18081/founder/form, 200, Foundera, -
+  GET, http://127.0.0.1:18081/founder, 200, Subactor, -
+  GET, http://founder.local.subactor.com:18081/api/me, 401, authentication-required, -
+  GET, http://founder.local.subactor.com:18081/, 200, Subactor, -
+  GET, http://127.0.0.1:8091/, 200, Subactor, -
+  GET, http://127.0.0.1:8091/health, 200, organization-control, -
+  GET, http://127.0.0.1:8091/api/me, 401, authentication-required, -
+  GET, http://127.0.0.1:8095/health, 200, mock-plesk, -
+  GET, http://127.0.0.1:8097/health, 200, webhook-sink, -
+  GET, http://127.0.0.1:8780/, 0, unreachable, -
+  GET, http://127.0.0.1:18443/, 400, HTTPS, -
+  GET, https://127.0.0.1:18443/, 200, -, true
+  GET, https://sub.actor/, 200, Subactor, true

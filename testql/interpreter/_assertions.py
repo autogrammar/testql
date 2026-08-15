@@ -26,11 +26,26 @@ _COMPARE_OPS: dict[str, Any] = {
 class AssertionsMixin:
     """Mixin providing ASSERT_STATUS, ASSERT_OK, ASSERT_CONTAINS, ASSERT_JSON."""
 
+    def _skip_if_optional_unreachable(self, name: str) -> bool:
+        """Skip response assertions after an optional API row that never connected."""
+        if not getattr(self, "_skip_response_asserts", False):
+            return False
+        reason = getattr(self, "_skip_response_reason", "") or "skipped: optional target unreachable"
+        self.out.step("⏭️", f"{name} ({reason})")
+        self.results.append(StepResult(name=name, status=StepStatus.SKIPPED, message=reason))
+        return True
+
     def _cmd_assert_status(self, args: str, line: OqlLine) -> None:
         """ASSERT_STATUS <code> — check last HTTP status code."""
         expected = int(args.strip())
-        ok = self.last_status == expected
         name = f"ASSERT_STATUS {expected}"
+        if self._skip_if_optional_unreachable(name):
+            return
+        if getattr(self, "dry_run", False):
+            self.out.step("  ✅", f"{name} (dry-run)")
+            self.results.append(StepResult(name=name, status=StepStatus.PASSED))
+            return
+        ok = self.last_status == expected
         if ok:
             self.out.step("  ✅", name)
             self.results.append(StepResult(name=name, status=StepStatus.PASSED))
@@ -44,8 +59,14 @@ class AssertionsMixin:
 
     def _cmd_assert_ok(self, args: str, line: OqlLine) -> None:
         """ASSERT_OK — check last status was 2xx."""
-        ok = 200 <= self.last_status < 300
         name = "ASSERT_OK"
+        if self._skip_if_optional_unreachable(name):
+            return
+        if getattr(self, "dry_run", False):
+            self.out.step("  ✅", f"{name} (dry-run)")
+            self.results.append(StepResult(name=name, status=StepStatus.PASSED))
+            return
+        ok = 200 <= self.last_status < 300
         if ok:
             self.out.step("  ✅", f"{name} (status {self.last_status})")
             self.results.append(StepResult(name=name, status=StepStatus.PASSED))
@@ -61,9 +82,15 @@ class AssertionsMixin:
         """ASSERT_CONTAINS "needle" — check needle present in JSON-serialised response."""
         import json as _json
         needle = args.strip().strip("\"'")
+        name = f'ASSERT_CONTAINS "{needle}"'
+        if self._skip_if_optional_unreachable(name):
+            return
+        if getattr(self, "dry_run", False):
+            self.out.step("  ✅", f"{name} (dry-run)")
+            self.results.append(StepResult(name=name, status=StepStatus.PASSED))
+            return
         haystack = _json.dumps(self.last_response or {})
         ok = needle in haystack
-        name = f'ASSERT_CONTAINS "{needle}"'
         if ok:
             self.out.step("  ✅", name)
             self.results.append(StepResult(name=name, status=StepStatus.PASSED))
@@ -85,7 +112,11 @@ class AssertionsMixin:
             return
 
         path, op, expected_str = parts[0], parts[1], parts[2]
-        
+        desc = f"ASSERT_JSON {path} {op} {expected_str}"
+        if not path.startswith("_") or path in {"_status", "_response", "_headers"}:
+            if self._skip_if_optional_unreachable(desc):
+                return
+
         # Support virtual fields like _status and nested virtual paths
         # like _encoder_status.error.
         if path.startswith("_"):
@@ -207,7 +238,14 @@ class AssertionsMixin:
             return
 
         header_name, op, expected = parts[0], parts[1], parts[2].strip("\"'")
-        
+        desc = f"ASSERT_HEADERS {header_name} {op} {expected}"
+        if self._skip_if_optional_unreachable(desc):
+            return
+        if getattr(self, "dry_run", False):
+            self.out.step("  ✅", f"{desc} (dry-run)")
+            self.results.append(StepResult(name=desc, status=StepStatus.PASSED))
+            return
+
         # Get headers from variable (set by API runner)
         actual = self.vars.get("_headers", {})
 

@@ -1,0 +1,14 @@
+# TestQL suites for this repository
+project:
+  name: testql
+  base_url: http://127.0.0.1:8791
+
+defaults:
+  timeout: 8000
+  output: console
+
+suites:
+  ecosystem:
+    - testql/scenarios/subactor-local/*.testql.toon.yaml
+  subactor-local:
+    - testql/scenarios/subactor-local/*.testql.toon.yaml

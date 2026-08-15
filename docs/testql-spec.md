@@ -30,6 +30,17 @@ API GET <url>             # API GET "/api/v3/data/devices"
 API POST <url> <json>     # API POST "/api/v3/scenarios" {"id": "ts1"}
 API PUT <url> <json>
 API DELETE <url>
+API GET <url> optional    # skip follow-up asserts if the target is unreachable
+```
+
+HTTP 4xx/5xx are captured as status codes (the API step itself passes; `ASSERT_STATUS` decides). A connection/TLS/DNS failure stores status `0` and `error: unreachable`. Mark the row `optional` so an unreachable optional target **skips** instead of failing the suite.
+
+TestTOON columns: `method, endpoint, status, contains, optional`.
+
+```
+API[2]{method, endpoint, status, contains, optional}:
+  GET, http://127.0.0.1:8091/health, 200, organization-control, -
+  GET, https://example.invalid/, 200, -, true
 ```
 
 ## Assertions

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 
+from ._api_runner import _is_optional_flag
 from ._gui_expand import expand_gui_row
 from ._parser import OqlLine, OqlScript
 # Backward compatibility: re-export classes that were moved
@@ -104,6 +105,16 @@ def _append_api_asserts(row: dict, lines: list[OqlLine], line_num: int) -> int:
             args=f'{assert_key} == "{assert_value}"', raw=raw_j,
         ))
         line_num += 1
+
+    contains = row.get('contains') or row.get('assert_contains')
+    if contains not in (None, "", "-"):
+        needle = str(contains).replace('"', '\\"')
+        raw_c = f'ASSERT_CONTAINS "{needle}"'
+        lines.append(OqlLine(
+            number=line_num, command='ASSERT_CONTAINS',
+            args=f'"{needle}"', raw=raw_c,
+        ))
+        line_num += 1
     return line_num
 
 
@@ -150,8 +161,14 @@ def _expand_api(
         elif body:
             body_str = ' ' + str(body)
 
-        raw = f'API {method} "{endpoint}"{body_str}'
-        lines.append(OqlLine(number=line_num, command='API', args=f'{method} "{endpoint}"{body_str}', raw=raw))
+        optional_flag = ' optional' if _is_optional_flag(row.get('optional')) else ''
+        raw = f'API {method} "{endpoint}"{body_str}{optional_flag}'
+        lines.append(OqlLine(
+            number=line_num,
+            command='API',
+            args=f'{method} "{endpoint}"{body_str}{optional_flag}',
+            raw=raw,
+        ))
         line_num = _append_api_asserts(row, lines, line_num + 1)
         line_num = _append_api_captures(
             row,
