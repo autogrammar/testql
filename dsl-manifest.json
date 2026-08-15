@@ -29,7 +29,8 @@
     "docs/PATCH.md",
     "docs/QUERY.md",
     "docs/VALIDATE.md",
-    "packages/dsl2testql/src/dsl2testql/schema/commands/**"
+    "packages/dsl2testql/src/dsl2testql/schema/commands/**",
+    "testql/contracts/nlp2dsl_conversation/**"
   ],
   "artifacts": [
     {
@@ -76,6 +77,11 @@
       "path": "docs/VALIDATE.md",
       "role": "documentation",
       "digest": "sha256:f31b9048a9eb6c9755bbe080d76695a4804229ce9be5840880aec3c11d650898"
+    },
+    {
+      "path": "testql/contracts/nlp2dsl_conversation/v1/conversation-fields.schema.json",
+      "role": "schema",
+      "digest": "sha256:2f313bce3141f3cc19bdb59d71a686706f7400c657680db5cc15c4a919d359c5"
     }
   ],
   "namespaces": [
@@ -142,6 +148,12 @@
       "version": "0.1.0",
       "relation": "implements",
       "uri": "https://github.com/wellmanifest/dsl"
+    },
+    {
+      "standard": "autogrammar.nlp2dsl",
+      "version": "0.0.48",
+      "relation": "maps-to",
+      "uri": "https://github.com/autogrammar/nlp2dsl"
     }
   ],
   "standardsLock": {
