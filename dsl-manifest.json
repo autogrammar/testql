@@ -1,0 +1,168 @@
+{
+  "$schema": "https://wellmanifest.dev/schemas/dsl-manifest/v1",
+  "schema": "wellmanifest.dsl/manifest/v1",
+  "id": "autogrammar.testql",
+  "name": "TestQL Interface Query Language for Testing",
+  "version": "1.2.67",
+  "status": "stable",
+  "purpose": "Declarative DSL for testing GUI, REST API, and hardware encoder interfaces with readable syntax for automated tests without programming overhead",
+  "domain": "testing",
+  "owners": [
+    {
+      "kind": "repository",
+      "id": "github:autogrammar/testql",
+      "responsibilities": ["semantics", "validation", "compatibility", "runtime", "security"]
+    }
+  ],
+  "source": {
+    "repository": "https://github.com/autogrammar/testql",
+    "path": "packages/dsl2testql/src/dsl2testql/schema/commands/generate.schema.json",
+    "declaredVersion": "1",
+    "canonical": "json-ast",
+    "mediaType": "application/schema+json",
+    "selectors": []
+  },
+  "ownedPaths": [
+    "dsl-manifest.json",
+    "README.md",
+    "docs/GENERATE.md",
+    "docs/PATCH.md",
+    "docs/QUERY.md",
+    "docs/VALIDATE.md",
+    "packages/dsl2testql/src/dsl2testql/schema/commands/**"
+  ],
+  "artifacts": [
+    {
+      "path": "packages/dsl2testql/src/dsl2testql/schema/commands/generate.schema.json",
+      "role": "normative-source",
+      "digest": "sha256:0fe9d02905d099a95cead96205ce82bac418c6e3a1cb6a4620fc2332b5056c5c"
+    },
+    {
+      "path": "packages/dsl2testql/src/dsl2testql/schema/commands/patch.schema.json",
+      "role": "schema",
+      "digest": "sha256:a0245ddfb8f659a9b7f6c55f955582f6f568733e3db5aef7f15fc977faeea4e8"
+    },
+    {
+      "path": "packages/dsl2testql/src/dsl2testql/schema/commands/query.schema.json",
+      "role": "schema",
+      "digest": "sha256:81244346943aab5e9ba62647495b89cf74a9864ff96b191c63cdb2142b579db2"
+    },
+    {
+      "path": "packages/dsl2testql/src/dsl2testql/schema/commands/validate.schema.json",
+      "role": "schema",
+      "digest": "sha256:bc8c37e08ca0fd465271b8b41e8fe65963ce55e78a371d8a198aad726634cb26"
+    },
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "digest": "sha256:3367cb67d453d7a81e71c2336be23c677c7db0c1d6dba4f3982aafc8ec5c7571"
+    },
+    {
+      "path": "docs/GENERATE.md",
+      "role": "documentation",
+      "digest": "sha256:e99b24dff6280d64643c286eaa86b10bc02c4e2d945981dbc40c0ab8a1de91ee"
+    },
+    {
+      "path": "docs/PATCH.md",
+      "role": "documentation",
+      "digest": "sha256:df5ebe9650c07b85643f6729bff499a58681b42dfd26610121edd0c244e7d4ad"
+    },
+    {
+      "path": "docs/QUERY.md",
+      "role": "documentation",
+      "digest": "sha256:8bea434163a8b52ff2de2cd9c917f8efe88a7d672502a24f8a763902cc388845"
+    },
+    {
+      "path": "docs/VALIDATE.md",
+      "role": "documentation",
+      "digest": "sha256:f31b9048a9eb6c9755bbe080d76695a4804229ce9be5840880aec3c11d650898"
+    }
+  ],
+  "namespaces": [
+    {
+      "prefix": "testql",
+      "uri": "https://github.com/autogrammar/testql/"
+    }
+  ],
+  "projections": [],
+  "lifecycle": {
+    "compatibility": "semver",
+    "stability": "stable",
+    "breaking": "major",
+    "additive": "minor",
+    "fix": "patch"
+  },
+  "semantics": {
+    "effectModel": "controlled-effects",
+    "unknownPolicy": "reject",
+    "authoritySchema": "testql/contracts/nlp2env/v1/tool-call.schema.json"
+  },
+  "llm": {
+    "mode": "input",
+    "requestSchemas": ["testql/contracts/nlp2dsl_conversation/v1/conversation-fields.schema.json"],
+    "responseSchemas": [],
+    "naturalLanguage": "typed-source-only",
+    "sourceSchema": "autogrammar.testql/v1",
+    "modelAuthority": "propose-only",
+    "strict": true
+  },
+  "documentation": {
+    "vocabularyKind": "commands",
+    "commandRoot": "docs",
+    "errorRoot": "docs/ERROR",
+    "criticalRoot": "docs/CRITICAL",
+    "commands": ["GENERATE", "PATCH", "QUERY", "VALIDATE"],
+    "errorCodes": [],
+    "criticalCodes": []
+  },
+  "findingPolicy": {
+    "schema": "wellmanifest.dsl/findings/v1",
+    "requiredProducers": ["autogrammar.testql.governance-check"],
+    "securityProducers": ["autogrammar.testql.governance-check"],
+    "blockingSeverities": ["critical"],
+    "requireEvaluable": true,
+    "blockUnresolvedSecurity": true
+  },
+  "publicationPolicy": {
+    "declaredTier": "controlled",
+    "deterministic": true,
+    "independentReview": true,
+    "externalAuthority": true,
+    "runtimeIsolation": true
+  },
+  "conformance": {
+    "levels": ["manifest", "contract", "runtime"],
+    "commands": ["python -m pytest tests/"],
+    "validExamples": [],
+    "invalidExamples": []
+  },
+  "mappings": [
+    {
+      "standard": "wellmanifest.dsl",
+      "version": "0.1.0",
+      "relation": "implements",
+      "uri": "https://github.com/wellmanifest/dsl"
+    }
+  ],
+  "standardsLock": {
+    "schema": "wellmanifest.standards-lock/v1",
+    "entries": [
+      {
+        "standard": "wellmanifest.dsl",
+        "version": "0.1.0",
+        "repository": "https://github.com/wellmanifest/dsl",
+        "revision": "b7d0595c95e5abbb48ebfdbdae0bc6d43c6f82f4",
+        "contracts": [
+          {
+            "ref": "https://wellmanifest.dev/schemas/dsl-manifest/v1",
+            "digest": "sha256:34d356b76bbd483372df84bb986e15bb84e9c1f8b11b7dc9e3a6c7276c85ed13"
+          },
+          {
+            "ref": "https://wellmanifest.dev/spec/DSL_STANDARD.md",
+            "digest": "sha256:2dfb09b5689289c3ad096057ca1dc2f19512639e3662188dd6c5ee25e4e8c53b"
+          }
+        ]
+      }
+    ]
+  }
+}
