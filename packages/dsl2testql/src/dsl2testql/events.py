@@ -28,7 +28,7 @@ class DslEvent:
         return asdict(self)
 
 
-class EventStore:
+class TestqlEventStore:
     def __init__(self, path: Path | str, *, fmt: StoreFormat | None = None) -> None:
         self.path = Path(path)
         if fmt is not None:
@@ -99,3 +99,6 @@ def default_event_store(manifest_file: str = "app.testql.less", *, prefer_pb: bo
     if prefer_pb:
         return EventStore(Path(f"app.{stem}.events.pb"), fmt="protobuf")
     return EventStore(Path(f"app.{stem}.events.jsonl"), fmt="jsonl")
+
+
+EventStore = TestqlEventStore
