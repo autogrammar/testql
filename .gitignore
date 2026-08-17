@@ -323,3 +323,8 @@ build/
 .aider*
 .aider*
 .aider*
+
+# Koru/planfile runtime artifacts
+.koru/
+.nlp2dsl/
+.planfile/
