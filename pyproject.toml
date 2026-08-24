@@ -100,6 +100,7 @@ model = "openrouter/qwen/qwen3-coder-next"
 
 [tool.pytest.ini_options]
 addopts = "--cov=testql --cov-report=term-missing --cov-report=json"
+pythonpath = ["packages"]
 # Core suite + extracted plugin packages — bare `pytest` runs everything.
 # Core tests skip plugin-dependent cases when a plugin is not installed.
 testpaths = [
