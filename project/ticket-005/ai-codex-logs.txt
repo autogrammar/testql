@@ -1,0 +1,8 @@
+2026-09-01T22:29:28Z SESSION_EXECUTION_AUTHORIZATION recorded for TestQL issue #10 and semcod/koru#64.
+2026-09-01T22:34:00Z EDIT base=ab9e899b916a1933c6219fc05cf39949d557141c workstream=governance dockerfiles=2.
+2026-09-01T22:36:00Z BUILD rejected reason="uv 0.11.28 forbids sync --frozen with --no-sources" remediation="no-sources lock check followed by frozen sync".
+2026-09-01T22:39:00Z BUILD runtime=pass cli=1.2.67 uv=0.11.28 nlp2env=0.1.6 e2e_image=pass.
+2026-09-01T22:40:00Z BLOCKED e2e="1650 passed, 53 skipped, 10 failed" reason="plugin entry-point metadata absent" prerequisite="lock setuptools and wheel in dev extra".
+2026-09-01T23:07:26Z RESUME prerequisite=ticket-006 main=2528dcfcfe95b1b786016bf9956900f6f1797843 status=IN_PROGRESS workflow=EDIT.
+2026-09-01T23:10:41Z VALIDATION runtime_image=sha256:a78e6ba5e881b196eac6a12839fc93aca299664413260127433d6f68c2cf1fd1 cli=1.2.67 uv=0.11.28 nlp2env=0.1.6.
+2026-09-01T23:10:41Z VALIDATION e2e_image=sha256:a68a4fbe88dfc505771f9aebb2f2e3ae09c83e37651aa9208d31ac74a26f4744 entrypoints=graphql,proto,sql tests="1701 passed, 12 skipped, 1 warning" workflow=PUBLICATION.
