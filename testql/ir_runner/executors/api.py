@@ -7,6 +7,7 @@ import urllib.error
 import urllib.request
 
 from testql.base import StepResult, StepStatus
+from testql.http_response import parse_http_body
 from testql.ir import ApiStep
 
 from ..context import ExecutionContext
@@ -20,16 +21,9 @@ def _resolve_url(path: str, ctx: ExecutionContext) -> str:
     return f"{ctx.api_url}{path}"
 
 
-def _parse_response(text: str) -> dict:
-    if not text:
-        return {}
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        return {"text": text[:500]}
-
-
-def _do_request(method: str, url: str, body: dict | None, headers: dict) -> tuple[int, dict]:
+def _do_request(
+    method: str, url: str, body: dict | None, headers: dict
+) -> tuple[int, dict, dict, dict]:
     req_body = json.dumps(body).encode("utf-8") if body is not None else None
     req = urllib.request.Request(
         url, data=req_body, method=method,
@@ -37,14 +31,17 @@ def _do_request(method: str, url: str, body: dict | None, headers: dict) -> tupl
     )
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
-            return resp.status, _parse_response(resp.read().decode("utf-8"))
+            response_headers = dict(resp.headers)
+            parsed = parse_http_body(resp.read(), response_headers)
+            return resp.status, parsed.data, response_headers, parsed.evidence
     except urllib.error.HTTPError as e:
-        body_text = e.read().decode("utf-8", errors="replace") if e.fp else ""
-        return e.code, _parse_response(body_text)
+        response_headers = dict(e.headers or {})
+        parsed = parse_http_body(e.read() if e.fp else b"", response_headers)
+        return e.code, parsed.data, response_headers, parsed.evidence
 
 
-def _payload(status: int, data: object, headers: dict) -> dict:
-    return {"status": status, "data": data, "headers": headers}
+def _payload(status: int, data: object, headers: dict, body: dict) -> dict:
+    return {"status": status, "data": data, "headers": headers, "body": body}
 
 
 def execute(step: ApiStep, ctx: ExecutionContext) -> StepResult:
@@ -57,11 +54,20 @@ def execute(step: ApiStep, ctx: ExecutionContext) -> StepResult:
         return StepResult(name=label, status=StepStatus.PASSED,
                           details={"dry_run": True, "url": url})
     try:
-        status, data = _do_request(step.method, url, body, headers)
+        result = _do_request(step.method, url, body, headers)
+        status, data = result[:2]
+        response_headers = result[2] if len(result) > 2 else {}
+        body_evidence = result[3] if len(result) > 3 else {}
     except Exception as e:
         return error_result(label, e)
     ctx.last_status, ctx.last_response = status, data
-    return assemble_result(label, _payload(status, data, headers), step.asserts, ctx.dry_run)
+    ctx.vars.set("_body", body_evidence)
+    return assemble_result(
+        label,
+        _payload(status, data, response_headers, body_evidence),
+        step.asserts,
+        ctx.dry_run,
+    )
 
 
 __all__ = ["execute"]

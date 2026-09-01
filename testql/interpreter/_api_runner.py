@@ -10,10 +10,10 @@ import urllib.request
 from typing import Any
 
 from testql.base import StepResult, StepStatus
+from testql.http_response import parse_http_body
 
 from ._parser import OqlLine
 
-_HTML_SNIPPET_LIMIT = 8192
 _OPTIONAL_TOKENS = frozenset({"optional", "true", "yes", "1"})
 
 
@@ -32,17 +32,6 @@ def _split_optional_api_args(args: str) -> tuple[str, bool]:
     if stripped.lower().endswith(" optional"):
         return stripped[: -len(" optional")].rstrip(), True
     return stripped, False
-
-
-def _parse_response_body(text: str) -> dict[str, Any]:
-    """Parse JSON when possible; otherwise keep a bounded text snippet."""
-    try:
-        parsed = json.loads(text)
-    except Exception:
-        return {"text": text[:_HTML_SNIPPET_LIMIT]}
-    if isinstance(parsed, dict):
-        return parsed
-    return {"data": parsed}
 
 
 def _is_unreachable_error(exc: BaseException) -> bool:
@@ -95,8 +84,10 @@ class ApiRunnerMixin:
 
     # ── Internal helpers ──────────────────────────────────────────────────────
 
-    def _do_http_request(self, method: str, url: str, body_data: dict | None) -> tuple[int, dict, dict]:
-        """Execute an HTTP request, returning (status, parsed_response, headers)."""
+    def _do_http_request(
+        self, method: str, url: str, body_data: dict | None
+    ) -> tuple[int, dict, dict, dict]:
+        """Return status, compatibility payload, headers and body evidence."""
         req_body = json.dumps(body_data).encode("utf-8") if body_data else None
         req = urllib.request.Request(
             url, data=req_body, method=method,
@@ -105,16 +96,19 @@ class ApiRunnerMixin:
         with urllib.request.urlopen(req, timeout=self._http_timeout_s()) as resp:
             status = resp.status
             headers = dict(resp.headers)
-            text = resp.read().decode("utf-8", errors="replace")
-            return status, _parse_response_body(text), headers
+            parsed = parse_http_body(resp.read(), headers)
+            return status, parsed.data, headers, parsed.evidence
 
-    def _do_http_request_with_retry(self, method: str, url: str, body_data: dict | None) -> tuple[int, dict, dict]:
+    def _do_http_request_with_retry(
+        self, method: str, url: str, body_data: dict | None
+    ) -> tuple[int, dict, dict, dict]:
         """Execute HTTP request with retry logic for transient failures."""
         last_exception = None
 
         for attempt in range(1, self.retry_max_attempts + 1):
             try:
-                status, data, headers = self._do_http_request(method, url, body_data)
+                result = self._do_http_request(method, url, body_data)
+                status = result[0]
 
                 # Check if status code warrants retry
                 if status in self.retry_status_codes and attempt < self.retry_max_attempts:
@@ -123,7 +117,7 @@ class ApiRunnerMixin:
                     time.sleep(backoff / 1000)
                     continue
 
-                return status, data, headers
+                return result
 
             except urllib.error.HTTPError as e:
                 last_exception = e
@@ -144,13 +138,20 @@ class ApiRunnerMixin:
             raise last_exception
         raise RuntimeError("Max retries exceeded")
 
-    def _store_api_response(self, status: int, response: dict, headers: dict | None = None) -> None:
+    def _store_api_response(
+        self,
+        status: int,
+        response: dict,
+        headers: dict | None = None,
+        body_evidence: dict | None = None,
+    ) -> None:
         """Persist last API response into interpreter state and variables."""
         self.last_status = status
         self.last_response = response
         self.vars.set("_status", status)
         self.vars.set("_response", response)
         self.vars.set("_headers", headers or {})
+        self.vars.set("_body", body_evidence or {})
         if isinstance(response, dict):
             data = response.get("data")
             if isinstance(data, list):
@@ -158,9 +159,16 @@ class ApiRunnerMixin:
 
     # ── Commands ─────────────────────────────────────────────────────────────
 
-    def _record_api_success(self, label: str, status: int, response: dict, headers: dict | None = None) -> None:
+    def _record_api_success(
+        self,
+        label: str,
+        status: int,
+        response: dict,
+        headers: dict | None = None,
+        body_evidence: dict | None = None,
+    ) -> None:
         """Store successful API response and append a PASSED step."""
-        self._store_api_response(status, response, headers)
+        self._store_api_response(status, response, headers, body_evidence)
         icon = "✅" if status < 400 else "❌"
         self.out.step(icon, f"{label} → {status}")
         self.results.append(StepResult(
@@ -253,16 +261,25 @@ class ApiRunnerMixin:
             return
 
         try:
-            status, response, headers = self._do_http_request_with_retry(method, url, body_data)
-            self._record_api_success(label, status, response, headers)
+            result = self._do_http_request_with_retry(method, url, body_data)
+            status, response, headers = result[:3]
+            body_evidence = result[3] if len(result) > 3 else {}
+            self._record_api_success(
+                label, status, response, headers, body_evidence
+            )
         except urllib.error.HTTPError as e:
             error_body: dict[str, Any] = {}
+            error_evidence: dict[str, Any] = {}
+            error_headers = dict(e.headers or {})
             try:
-                raw = e.read().decode("utf-8", errors="replace")
-                error_body = _parse_response_body(raw) if raw else {}
+                parsed = parse_http_body(e.read(), error_headers)
+                error_body = parsed.data
+                error_evidence = parsed.evidence
             except Exception:
                 error_body = {}
-            self._store_api_response(e.code, error_body)
+            self._store_api_response(
+                e.code, error_body, error_headers, error_evidence
+            )
             icon = "✅" if e.code < 500 else "⚠️"
             self.out.step(icon, f"{label} → {e.code}")
             self.results.append(StepResult(
