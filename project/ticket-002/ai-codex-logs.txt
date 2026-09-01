@@ -1,0 +1,2 @@
+2026-09-01T06:50:26Z SESSION_EXECUTION_AUTHORIZATION user="kontynuuj"
+2026-09-01T06:50:26Z BLOCKED GOV-WORKSTREAM-003 core owns src/** and tests/**; production package is testql/**
