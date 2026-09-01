@@ -7,3 +7,4 @@
 - Planned the narrow integration ownership declaration for `uv.lock`.
 - Declared and validated `uv.lock` as an integration-owned dependency contract.
 - Restored required CI coverage for the repository's declared `nlp2env` extra.
+- Recorded the trusted exact-head merge and closed the ticket.
