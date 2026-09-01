@@ -42,6 +42,15 @@ dependency graph pulls Playwright, LiteLLM, pandas, boto3 and notebook tooling.
 Dependency separation belongs to the integration workstream and is deliberately
 not mixed into this packaging repair.
 
+## Publication evidence
+
+Validator approved exact HEAD `d7ff12cb98cd86510320f1e9d8e41f3161c423d4`
+and merged [PR #7](https://github.com/autogrammar/testql/pull/7) as
+`1125743e4854eed84c3ee7c6b0a5d17c572fd16f`. Required post-merge CI passed and
+the remote ticket branch was deleted. The implementation is complete; the
+ticket remains active only as the governance owner of the post-merge README,
+changelog and roadmap reconciliation in this follow-up publication.
+
 ## Participants
 
 - Human participant: unresolved; no user-* file was created by this script.

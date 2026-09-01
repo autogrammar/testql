@@ -1,6 +1,6 @@
 # TODO — TestQL Development Roadmap
 
-Last updated: 2026-05-08 (1.2.50 — multi-scenario watchdog + docs update)
+Last updated: 2026-09-01 (1.2.67 source — Docker and binary HTTP evidence)
 
 ## 🎯 Active Development Priorities
 
@@ -52,6 +52,8 @@ Last updated: 2026-05-08 (1.2.50 — multi-scenario watchdog + docs update)
 
 - [x] Repair Docker build inputs after the package moved from `src/` to
   `testql/`, and make the E2E image install the extracted local plugins.
+- [x] Preserve deterministic MIME, byte length, SHA-256 and magic evidence for
+  binary HTTP responses in both the classic and Unified IR executors.
 
 > **Note:** Complete prefact-generated issues (848 items) archived to `.archive/TODO_prefact_2026-04-25.md`
 

@@ -2,7 +2,7 @@
 
 - **ID**: ticket-002
 - **Owner**: unresolved:human
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: PUBLICATION
 - **Created**: 2026-09-01
 
@@ -58,7 +58,17 @@ extendable manifest.
 The repository-authored Docker packaging blocker was resolved independently by
 ticket-001 and merged through PR #7. Ticket-002 was resumed and fully validated
 on top of that exact `main` revision without taking ownership of Docker or
-Compose paths. The ticket is ready for protected publication.
+Compose paths.
+
+## Publication evidence
+
+Validator approved exact HEAD `fe28201fd6d518da7aa38ae9e221904ffa26798e`
+after two stable policy reads and merged
+[PR #6](https://github.com/autogrammar/testql/pull/6) as
+`6b80259dadaee4738bf97d77ecd90b6f9a64f8f6`. Required post-merge CI passed in
+9m15s and the remote ticket branch was deleted. The unrelated organization
+metadata dispatch failed because its workflow received no authentication
+token; this did not affect TestQL validation or publication.
 
 ## Participants
 

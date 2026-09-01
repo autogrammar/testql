@@ -12,3 +12,7 @@
 2026-09-01T09:29:23Z DOCKER runtime_build=pass runtime_start="TestQL 1.2.67" e2e_build=pass e2e="1690 passed, 23 skipped"
 2026-09-01T09:29:23Z INTEGRATION viewer_live="59/59 passed" endpoint="http://127.0.0.1:8088"
 2026-09-01T09:29:23Z PUBLICATION ready=true pr=6
+2026-09-01T10:51:23Z PUBLICATION validator_run=33495507788 exact_head=fe28201fd6d518da7aa38ae9e221904ffa26798e merge=6b80259dadaee4738bf97d77ecd90b6f9a64f8f6 stable_reads=2 branch_deleted=true
+2026-09-01T10:51:23Z VALIDATION post_merge_ci=33495661393 outcome=pass duration=9m15s
+2026-09-01T10:51:23Z INFRA metadata_sync=33495661394 outcome=fail reason="token or opts.auth required" required_check=false
+2026-09-01T10:51:23Z DONE ticket=ticket-002

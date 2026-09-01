@@ -66,3 +66,14 @@ to the `core` workstream.
 Ticket-002 completed `VALIDATION` on the combined tree and moved to
 `PUBLICATION`. It does not modify or claim ownership of the Docker, Compose or
 root roadmap files brought in from `main`.
+
+## Publication
+
+- Validator approved exact HEAD `fe28201fd6d518da7aa38ae9e221904ffa26798e`
+  after two stable reads.
+- PR #6 was merged as `6b80259dadaee4738bf97d77ecd90b6f9a64f8f6`.
+- Required post-merge CI passed in 9m15s and the remote branch was deleted.
+- The separate organization metadata dispatch lacked its token; it was not a
+  required TestQL check and did not change the publication verdict.
+
+The implementation and publication are complete.
