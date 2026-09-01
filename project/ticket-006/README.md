@@ -2,7 +2,7 @@
 
 - **ID**: ticket-006
 - **Owner**: unresolved:human
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: PUBLICATION
 - **Created**: 2026-09-01
 
@@ -39,6 +39,15 @@ plugin package declaration.
   their local distributions; focused regression suite: `77 passed`.
 - `./project/governance-check.sh`: `GOV-PASS`.
 - All three root Compose configurations and both Docker build checks pass.
+
+## Publication evidence
+
+Required CI passed and Validator run `33568151227` approved exact HEAD
+`8b5abe40b0da0c6b9fd5d1f761e8bdbc3b61e63c` with protected review
+`5083818995`. PR #15 merged as
+`84df11fd05ee22d213f11a3aa63ecf4cc94e76bf` on 2026-09-01, and its remote
+ticket branch was deleted. The clean disposable implementation worktree and
+its fully reachable local branch were removed.
 
 ## Authorization
 

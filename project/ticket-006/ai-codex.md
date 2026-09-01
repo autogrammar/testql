@@ -32,7 +32,15 @@ keeps that metadata installation resolver-free and out of production runtime.
   dependency resolution and expose the required entry points.
 - Ran 77 focused tests, the managed governance gate, three Compose checks and
   both Dockerfile build checks successfully.
+- Required CI passed; Validator run `33568151227` approved exact HEAD
+  `8b5abe40b0da` and merged PR #15 as `84df11fd05ee`. The remote branch and
+  verified disposable implementation worktree were removed.
 
 ## Blockers
 
 - None.
+
+## Publication
+
+Complete. Protected review `5083818995` is bound to the exact implementation
+HEAD and ticket-006 is closed after the confirmed merge.
