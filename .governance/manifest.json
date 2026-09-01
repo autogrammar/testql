@@ -15,6 +15,7 @@
     "integration": {
       "requiredForPaths": [
         "pyproject.toml",
+        "uv.lock",
         "dsl-manifest.json"
       ],
       "workstream": "integration"
@@ -54,6 +55,7 @@
       "integration": {
         "ownedPaths": [
           "pyproject.toml",
+          "uv.lock",
           "dsl-manifest.json",
           "docs/**"
         ]
@@ -69,6 +71,7 @@
     "dependencyManifestPaths": [
       "package.json",
       "pyproject.toml",
+      "uv.lock",
       "go.mod",
       "Cargo.toml",
       "pom.xml"

@@ -1,0 +1,4 @@
+2026-09-01T21:26:09Z SESSION_EXECUTION_AUTHORIZATION recorded for issue #10 and semcod/koru#64.
+2026-09-01T21:29:00Z GOV-SYNC-001 resolved by binding the local manifest extension in manifest.lock.json.
+2026-09-01T21:30:00Z VALIDATION governance=pass compose=pass docker_check=pass diff_check=pass.
+2026-09-01T21:30:00Z PUBLICATION ready=true.
