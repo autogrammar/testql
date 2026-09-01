@@ -2,7 +2,7 @@
 
 - **ID**: ticket-003
 - **Owner**: unresolved:human
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: PUBLICATION
 - **Created**: 2026-09-01
 
@@ -21,10 +21,10 @@ no runtime or Docker implementation change.
 - [x] AC-02: `uv.lock` is declared as an integration-owned dependency manifest
   and shared integration path.
 - [x] AC-03: No existing ownership or runtime behavior changes.
-- [ ] AC-04: Required CI installs the declared `nlp2env` test extra and passes
+- [x] AC-04: Required CI installs the declared `nlp2env` test extra and passes
   the suite that already exercises that optional integration; its existing
   workflow path is explicitly assigned to governance.
-- [ ] AC-05: Governance, Docker configuration and protected exact-head
+- [x] AC-05: Governance, Docker configuration and protected exact-head
   publication checks pass.
 
 The managed manifest lock is updated only to bind the resulting local
@@ -48,6 +48,13 @@ The first protected publication attempt correctly stopped because required CI
 on pre-existing `main` failed with `ModuleNotFoundError: nlp2env`. The workflow
 installed `.[dev]` even though its suite imports the declared `nlp2env` extra;
 the exact correction is validated by the replacement required check.
+
+## Publication evidence
+
+Validator run `33562763375` approved exact HEAD
+`a604a49ca35d0b249dd641629ba61fbcb8011209` after the required `test` check
+passed. PR #11 merged as `6e4c92b5da968ee223cc6917aadd651cf5876d77`
+on 2026-09-01, and the remote ticket branch was deleted automatically.
 
 ## Participants
 

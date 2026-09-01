@@ -34,7 +34,15 @@ only declares that integration-owned contract before any lock or image change.
   merge. Updated CI to install the existing `nlp2env` extra exercised by the
   suite, without adding or changing a runtime dependency, and assigned the
   previously unowned workflow path to governance.
+- Required CI passed on replacement exact HEAD `a604a49ca35d`; Validator run
+  `33562763375` approved it and merged PR #11 as `6e4c92b5da96`. The remote
+  branch and verified disposable worktree were removed.
 
 ## Blockers
 
 - None.
+
+## Publication
+
+Complete. The ticket is closed after protected exact-head merge evidence was
+observed from GitHub.
