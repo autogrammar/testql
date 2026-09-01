@@ -15,12 +15,14 @@ and the Unified IR executor still uses strict decoding. The repair should be a
 single shared byte classifier used by both paths.
 
 The user's `continue` instruction is `SESSION_EXECUTION_AUTHORIZATION` for this
-implementation scope. It does not authorize changing governance ownership held
-by another active workstream.
+implementation scope. The subsequent explicit `tak` authorizes the minimal
+governance prerequisite: assign the repository's existing `testql/**` package
+to the `core` workstream.
 
 ## Execution plan
 
-1. Obtain a governance-owned correction assigning `testql/**` to `core`.
+1. Apply and validate the governance-owned correction assigning `testql/**`
+   to `core`.
 2. Add a shared response-byte classifier without a runtime dependency.
 3. Adopt it in the classic and Unified IR HTTP executors.
 4. Add focused JSON, text, PNG and PDF regression tests.
@@ -33,9 +35,9 @@ by another active workstream.
 - Reproduced the version split: project venv 1.2.66 fails on binary UTF-8,
   editable 1.2.67 completes but only retains replacement text.
 - Created a bounded implementation ticket without touching executable source.
+- Received explicit authority for the governance prerequisite and moved the
+  ticket to `EDIT`.
 
 ## Blockers
 
-- `testql/**` has no owning workstream in `.governance/manifest.json`.
-- `.governance/**` is already reserved by active `ticket-001`; a core ticket
-  cannot widen that ownership retroactively.
+- None after the explicitly authorized ownership correction passes governance.

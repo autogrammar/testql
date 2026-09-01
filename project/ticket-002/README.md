@@ -2,8 +2,8 @@
 
 - **ID**: ticket-002
 - **Owner**: unresolved:human
-- **Status**: BLOCKED
-- **Workflow state**: PLAN
+- **Status**: IN_PROGRESS
+- **Workflow state**: EDIT
 - **Created**: 2026-09-01
 
 ## Goal and scope
@@ -29,14 +29,15 @@ domain-specific PNG/PDF/KiCad validation.
 - [ ] AC-05: Focused tests, full pytest, Docker checks and
   `project/governance-check.sh` pass.
 
-## Blocker
+## Governance prerequisite
 
 `.governance/manifest.json` assigns the `core` workstream only `src/**` and
 `tests/**`, while this repository's production package lives under
 `testql/**`. The active governance ticket `ticket-001` owns
-`.governance/**`. Implementing this ticket would therefore violate
-`GOV-WORKSTREAM-003` until the governance owner adds `testql/**` to the core
-workstream or otherwise routes that path through an approved workstream.
+`.governance/**`. The user explicitly authorized the minimal correction on
+2026-09-01: add `testql/**` to `core.ownedPaths` without changing any other
+workstream or delivery policy. The managed lock is updated to bind that local,
+extendable manifest.
 
 ## Participants
 

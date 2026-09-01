@@ -11,7 +11,7 @@
   "allowedPaths": [
     "project/ticket-002/**",
     "project/TICKETS.md",
-    "testql/interpreter/_http_response.py",
+    "testql/http_response.py",
     "testql/interpreter/_api_runner.py",
     "testql/ir_runner/executors/api.py",
     "tests/test_api_binary_responses.py"

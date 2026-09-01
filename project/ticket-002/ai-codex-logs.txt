@@ -1,2 +1,4 @@
 2026-09-01T06:50:26Z SESSION_EXECUTION_AUTHORIZATION user="kontynuuj"
 2026-09-01T06:50:26Z BLOCKED GOV-WORKSTREAM-003 core owns src/** and tests/**; production package is testql/**
+2026-09-01T07:05:00Z AUTHORIZATION user="tak" scope="add testql/** to core.ownedPaths"
+2026-09-01T07:05:00Z EDIT ticket=ticket-002 blocker=resolved
