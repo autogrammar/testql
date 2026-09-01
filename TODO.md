@@ -50,6 +50,8 @@ Last updated: 2026-09-01 (1.2.67 source — Docker and binary HTTP evidence)
 
 ## 📋 Technical Debt & Code Quality
 
+- [ ] Deliver the portable lockfile and immutable Docker build chain tracked by
+  `ticket-003` and TestQL issue #10 for external consumers such as Koru.
 - [x] Repair Docker build inputs after the package moved from `src/` to
   `testql/`, and make the E2E image install the extracted local plugins.
 - [x] Preserve deterministic MIME, byte length, SHA-256 and magic evidence for
