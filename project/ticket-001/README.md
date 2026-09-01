@@ -2,7 +2,7 @@
 
 - **ID**: ticket-001
 - **Owner**: unresolved:human
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: PUBLICATION
 - **Created**: 2026-08-17
 
@@ -48,8 +48,15 @@ Validator approved exact HEAD `d7ff12cb98cd86510320f1e9d8e41f3161c423d4`
 and merged [PR #7](https://github.com/autogrammar/testql/pull/7) as
 `1125743e4854eed84c3ee7c6b0a5d17c572fd16f`. Required post-merge CI passed and
 the remote ticket branch was deleted. The implementation is complete; the
-ticket remains active only as the governance owner of the post-merge README,
-changelog and roadmap reconciliation in this follow-up publication.
+ticket stayed active only as the governance owner of the post-merge README,
+changelog and roadmap reconciliation that followed.
+
+That reconciliation was approved for exact HEAD
+`101df583750a153b3f29b4ff86ffd71f2c55b8cb` and merged through
+[PR #8](https://github.com/autogrammar/testql/pull/8) as
+`e24f0ba406c77347ec951d2858146b6d9836d4e5`. Required CI passed, Validator
+converged after two stable reads, and the remote documentation branch was
+deleted. No implementation or documentation work remains in this ticket.
 
 ## Participants
 

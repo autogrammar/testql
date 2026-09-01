@@ -52,10 +52,12 @@ was reported, is `SESSION_EXECUTION_AUTHORIZATION` for this bounded repair.
 - PR #7 was merged as `1125743e4854eed84c3ee7c6b0a5d17c572fd16f`.
 - Required post-merge CI passed and the remote branch was deleted.
 
-The implementation publication is complete. The ticket remains active only
-through the protected follow-up that reconciles root documentation with the
-published Docker and binary-response work; a governance-only follow-up will
-then mark it `DONE`.
+The implementation publication is complete. The protected documentation
+follow-up was approved at exact HEAD
+`101df583750a153b3f29b4ff86ffd71f2c55b8cb` after two stable reads and merged
+through PR #8 as `e24f0ba406c77347ec951d2858146b6d9836d4e5`. Its required CI passed and the
+remote branch was deleted. This governance-only receipt marks the ticket
+`DONE`; no implementation or root-documentation path is changed here.
 
 The user's explicit request to update documentation is
 `SESSION_EXECUTION_AUTHORIZATION` for this follow-up. The intent adds only the

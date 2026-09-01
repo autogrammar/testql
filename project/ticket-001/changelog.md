@@ -17,3 +17,6 @@
 - Recorded explicit documentation authority and added the already
   governance-owned root `README.md` to the ticket's previously incomplete
   allowed path list.
+- Recorded the green CI, two-read Validator approval and PR #8 merge
+  `e24f0ba406c7`; closed the final governance owner as `DONE` without changing
+  implementation or root documentation.
