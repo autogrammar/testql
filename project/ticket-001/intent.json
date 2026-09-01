@@ -29,7 +29,7 @@
   "forbiddenPaths": [
     "project/ticket-*/user-*.md"
   ],
-  "stacks": [],
+  "stacks": ["docker"],
   "dependsOn": [],
   "conflictsWith": [],
   "integrationTicket": null

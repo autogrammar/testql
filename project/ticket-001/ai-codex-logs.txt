@@ -1,0 +1,2 @@
+2026-09-01T07:40:34Z SESSION_EXECUTION_AUTHORIZATION user="kontynuuj" scope="repair declared Docker and Compose packaging"
+2026-09-01T07:40:34Z EDIT ticket=ticket-001 worktree=../testql-ticket-001 branch=ticket-001-docker-packaging
