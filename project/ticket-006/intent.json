@@ -1,0 +1,80 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-006",
+  "summary": "Lock E2E plugin build tools",
+  "workstream": "integration",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P1",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    "project/ticket-006/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "pyproject.toml",
+    "uv.lock"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": ["docker"],
+  "dependsOn": ["ticket-003", "ticket-004"],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "ab9e899b916a1933c6219fc05cf39949d557141c",
+    "targetBranch": "main",
+    "outcome": "Dev-only build tools are hash-locked for resolver-free local E2E plugin metadata installation.",
+    "nonGoals": [
+      "Add a production runtime dependency.",
+      "Change Dockerfiles or local plugin dependency declarations."
+    ],
+    "complexity": "XS",
+    "estimatedMinutes": 10,
+    "budgets": {
+      "maxImplementationFiles": 2,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Reuse the packages' declared setuptools backend from the frozen dev environment and disable build isolation and dependency installation for local plugin metadata.",
+      "components": [
+        {
+          "name": "dev-dependency-contract",
+          "paths": ["pyproject.toml", "uv.lock"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": ["Extend the portable dev dependency graph with setuptools and wheel."],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert the dev-extra entries and regenerate uv.lock with --no-sources."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-02",
+        "commands": ["uv lock --no-sources", "uv lock --check --no-sources"],
+        "evidence": "The portable lock contains registry artifacts and hashes for both dev build tools."
+      },
+      {
+        "criterion": "AC-03",
+        "commands": [
+          "uv sync --locked --extra dev --extra nlp2env --no-sources --no-editable",
+          "uv pip install --python .venv/bin/python --no-build-isolation --no-deps --editable packages/graphql2testql --editable packages/proto2testql --editable packages/sql2testql --editable packages/desktop2testql"
+        ],
+        "evidence": "All local plugin metadata installs using only the frozen environment's build backend."
+      },
+      {
+        "criterion": "AC-05",
+        "commands": ["./project/governance-check.sh", "docker build --check -f Dockerfile.e2e ."],
+        "evidence": "Managed governance and the declared Docker stack pass."
+      }
+    ]
+  }
+}
