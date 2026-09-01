@@ -3,3 +3,5 @@
 2026-09-01T22:08:00Z LOCK uv=0.11.28 packages=188 sha256=efe18353c7fc9edb6ab1963f11a92b54000a13afbd59229542bfa1d38185f1a7 external_sources=registry-only.
 2026-09-01T22:09:00Z VALIDATION locked_sync=pass extra=nlp2env cli=1.2.67 governance=pass compose=pass docker_check=pass diff_check=pass.
 2026-09-01T22:09:00Z PUBLICATION ready=true.
+2026-09-01T22:16:48Z PUBLICATION validator_run=33565378018 exact_head=0c8faed91ee8210a1759926a61fcee28f67c025e merge=8e759086b8e4ac4aeb4bb547d1f342430762170c required_check=test branch_deleted=true advisory=budget_exceeded.
+2026-09-01T22:18:00Z DONE ticket=ticket-004.

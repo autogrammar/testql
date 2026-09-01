@@ -2,7 +2,7 @@
 
 - **ID**: ticket-004
 - **Owner**: unresolved:human
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: PUBLICATION
 - **Created**: 2026-09-01
 
@@ -25,7 +25,7 @@ This ticket changes no dependency declaration, executable source or Dockerfile.
 - [x] AC-03: Repeated `uv lock --check --no-sources` validation is stable.
 - [x] AC-04: Managed governance, Compose configuration, Docker build check and
   whitespace validation pass.
-- [ ] AC-05: Protected exact-head publication succeeds.
+- [x] AC-05: Protected exact-head publication succeeds.
 
 ## Authorization
 
@@ -45,6 +45,15 @@ self-approval, direct merge or unrelated changes.
   sync installed the project and `testql --version` reported `1.2.67`.
 - Managed governance, all declared Compose configs, Docker build check and
   `git diff --check`: passed.
+
+## Publication evidence
+
+Required CI passed and Validator run `33565378018` approved exact HEAD
+`0c8faed91ee8210a1759926a61fcee28f67c025e`. PR #13 merged as
+`8e759086b8e4ac4aeb4bb547d1f342430762170c` on 2026-09-01, and its remote
+ticket branch was deleted. The advisory model was unavailable because the
+generated lock required 50 chunks; deterministic checks remained the approval
+authority.
 
 ## Participants
 
