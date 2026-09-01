@@ -40,6 +40,7 @@
           "CHANGELOG.md",
           "VERSION",
           ".gitignore",
+          ".github/workflows/**",
           "Dockerfile",
           "Dockerfile.e2e",
           "compose.yml",

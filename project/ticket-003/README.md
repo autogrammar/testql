@@ -9,8 +9,10 @@
 ## Goal and scope
 
 Establish the missing ownership boundary for the portable `uv.lock` required by
-TestQL issue #10. The integration workstream will own the dependency contract;
-this governance ticket makes no runtime or Docker implementation change.
+TestQL issue #10. The integration workstream will own the dependency contract.
+The ticket also restores the already-red required CI check by installing the
+repository's declared `nlp2env` extra after `main` began importing it. It makes
+no runtime or Docker implementation change.
 
 ## Acceptance criteria
 
@@ -19,7 +21,10 @@ this governance ticket makes no runtime or Docker implementation change.
 - [x] AC-02: `uv.lock` is declared as an integration-owned dependency manifest
   and shared integration path.
 - [x] AC-03: No existing ownership or runtime behavior changes.
-- [ ] AC-04: Governance, Docker configuration and protected exact-head
+- [ ] AC-04: Required CI installs the declared `nlp2env` test extra and passes
+  the suite that already exercises that optional integration; its existing
+  workflow path is explicitly assigned to governance.
+- [ ] AC-05: Governance, Docker configuration and protected exact-head
   publication checks pass.
 
 The managed manifest lock is updated only to bind the resulting local
@@ -36,7 +41,13 @@ secret access, self-approval, direct merge or unrelated changes.
 - Managed governance check: passed with zero errors and warnings.
 - All three declared Compose configurations: passed.
 - Docker engine `29.1.3` reachable; Docker build check: passed with no warnings.
+- Declared `nlp2env` import and `PromptScenario` resolution: passed.
 - `git diff --check`: passed.
+
+The first protected publication attempt correctly stopped because required CI
+on pre-existing `main` failed with `ModuleNotFoundError: nlp2env`. The workflow
+installed `.[dev]` even though its suite imports the declared `nlp2env` extra;
+the exact correction is validated by the replacement required check.
 
 ## Participants
 

@@ -15,8 +15,10 @@ only declares that integration-owned contract before any lock or image change.
 ## Execution plan
 
 1. Add `uv.lock` to the integration and dependency-manifest registries.
-2. Run managed governance and declared Docker configuration checks.
-3. Publish through exact-head Validator review.
+2. Restore the pre-existing red CI check by installing its declared optional
+   `nlp2env` integration.
+3. Run managed governance and declared Docker configuration checks.
+4. Publish through exact-head Validator review.
 
 ## Actual changes
 
@@ -27,6 +29,11 @@ only declares that integration-owned contract before any lock or image change.
 - Declared `uv.lock` in all three required registries without changing runtime
   behavior; governance, Compose and Docker build checks passed.
 - Moved the exact candidate to protected publication.
+- Diagnosed the rejected first publication: current `main` already failed all
+  collection with a missing optional `nlp2env` import introduced by its latest
+  merge. Updated CI to install the existing `nlp2env` extra exercised by the
+  suite, without adding or changing a runtime dependency, and assigned the
+  previously unowned workflow path to governance.
 
 ## Blockers
 

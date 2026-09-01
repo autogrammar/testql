@@ -12,6 +12,7 @@
     "project/ticket-003/**",
     "TODO.md",
     "project/TICKETS.md",
+    ".github/workflows/ci.yml",
     ".governance/manifest.json",
     ".governance/manifest.lock.json"
   ],

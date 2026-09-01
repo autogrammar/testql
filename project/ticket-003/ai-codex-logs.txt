@@ -2,3 +2,6 @@
 2026-09-01T21:29:00Z GOV-SYNC-001 resolved by binding the local manifest extension in manifest.lock.json.
 2026-09-01T21:30:00Z VALIDATION governance=pass compose=pass docker_check=pass diff_check=pass.
 2026-09-01T21:30:00Z PUBLICATION ready=true.
+2026-09-01T21:32:00Z PUBLICATION rejected exact_head=e1c6b8e required_check=test conclusion=failure.
+2026-09-01T21:34:00Z DIAGNOSIS base_main=cc9171f failure="ModuleNotFoundError: nlp2env" workflow_installed=".[dev]" declared_extra="nlp2env".
+2026-09-01T21:38:00Z VALIDATION governance=pass compose=pass docker_check=pass nlp2env_import=pass diff_check=pass.
