@@ -18,6 +18,11 @@ Generated on 2026-07-21 using [openrouter/qwen/qwen3-coder-next](https://openrou
 
 TestQL is a declarative DSL (Domain Specific Language) for testing GUI, REST API, and hardware encoder interfaces. It provides a simple, readable syntax for writing automated tests without programming overhead.
 
+> **Version state (2026-09-01):** PyPI and `testql.__version__` still report
+> 1.2.66. The repository `VERSION` and builds from `main` report 1.2.67.
+> Binary HTTP response evidence is merged in source commit `6b80259dadae` but
+> is not yet present in the PyPI package.
+
 ### What's new in 1.2.x
 
 - **Native Desktop E2E**: `DESKTOP_*` commands with vdisplay mirror→Xvfb capture, img2nl + imgl OCR on Linux (no Wayland portal)
@@ -369,6 +374,37 @@ ASSERT_JSON status != "error"
 ```
 
 **Operators:** `==`, `!=`, `>`, `>=`, `<`, `<=`, `CONTAINS`
+
+#### Binary HTTP response evidence
+
+Source builds from merge `6b80259dadaee4738bf97d77ecd90b6f9a64f8f6`
+classify the raw response bytes before attempting text decoding. Existing JSON
+objects/lists and bounded text keep their compatibility payloads. PNG, PDF,
+JPEG, GIF, ZIP and gzip responses expose evidence without inserting replacement
+text into the response:
+
+```testql
+API GET "/render.png"
+ASSERT_STATUS 200
+ASSERT_JSON _body.kind == binary
+ASSERT_JSON _body.content_type == image/png
+ASSERT_JSON _body.magic == png
+ASSERT_JSON _body.byte_length > 1000
+```
+
+`_body` always contains `kind`, normalized `content_type`, `byte_length`,
+`sha256` and detected `magic`. The Unified IR executor exposes the same fields
+under `body`, so the classic interpreter and IR runner cannot disagree about a
+binary response. Magic bytes take precedence over a misleading text MIME type;
+SVG remains bounded text with `magic=svg`.
+
+Until a release newer than 1.2.66 reaches PyPI, install the immutable merged
+source when these assertions are required:
+
+```bash
+python3 -m pip install \
+  "git+https://github.com/autogrammar/testql.git@6b80259dadaee4738bf97d77ecd90b6f9a64f8f6"
+```
 
 #### Shell output assertions
 

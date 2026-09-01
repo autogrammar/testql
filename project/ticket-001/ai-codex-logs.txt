@@ -3,3 +3,7 @@
 2026-09-01T07:57:08Z IMPLEMENTATION commit=ece3208 runtime=Dockerfile e2e=Dockerfile.e2e compose=3
 2026-09-01T07:57:08Z VALIDATION runtime=pass focused="77 passed; 183 passed" container="1683 passed, 23 skipped" host="1697 passed, 9 skipped"
 2026-09-01T07:57:08Z PUBLICATION governance=pass protected-review=pending
+2026-09-01T10:51:23Z PUBLICATION validator_run=33489354617 exact_head=d7ff12cb98cd86510320f1e9d8e41f3161c423d4 merge=1125743e4854eed84c3ee7c6b0a5d17c572fd16f branch_deleted=true
+2026-09-01T10:51:23Z DOCUMENTATION reconciliation=active owner=ticket-001 post_merge_ci=pass
+2026-09-01T10:51:23Z SESSION_EXECUTION_AUTHORIZATION user="kontynuuj i zaktualizuj dokumentacje" scope="README.md CHANGELOG.md TODO.md publication records"
+2026-09-01T10:51:23Z INTENT allowed_path_added=README.md workstream=governance

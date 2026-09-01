@@ -22,3 +22,7 @@
   mypy, all Compose configurations, managed governance, both container builds,
   the full E2E image suite and the live Viewer scenarios.
 - Completed every acceptance criterion and moved the ticket to `PUBLICATION`.
+- Recorded Validator approval of the exact HEAD, merge `6b80259dadae`, green
+  post-merge CI and remote branch deletion; closed the ticket as `DONE`.
+- Kept the unauthenticated organization metadata dispatch visible as an
+  unrelated infrastructure failure rather than presenting it as a code test.

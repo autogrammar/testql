@@ -16,6 +16,7 @@
     "project/readme.sh",
     ".governance/**",
     "AGENTS.md",
+    "README.md",
     "VERSION",
     "CHANGELOG.md",
     "TODO.md",

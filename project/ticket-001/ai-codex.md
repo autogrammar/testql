@@ -46,7 +46,18 @@ was reported, is `SESSION_EXECUTION_AUTHORIZATION` for this bounded repair.
   resource regressions, full container/Compose `1683 passed, 23 skipped`, host
   `1697 passed, 9 skipped`, all Compose configs and governance.
 
-## Blockers
+## Publication
 
-- Implementation has no technical blocker. Publication still requires the
-  repository's protected review bound to the final HEAD.
+- Validator approved exact HEAD `d7ff12cb98cd86510320f1e9d8e41f3161c423d4`.
+- PR #7 was merged as `1125743e4854eed84c3ee7c6b0a5d17c572fd16f`.
+- Required post-merge CI passed and the remote branch was deleted.
+
+The implementation publication is complete. The ticket remains active only
+through the protected follow-up that reconciles root documentation with the
+published Docker and binary-response work; a governance-only follow-up will
+then mark it `DONE`.
+
+The user's explicit request to update documentation is
+`SESSION_EXECUTION_AUTHORIZATION` for this follow-up. The intent adds only the
+previously omitted root `README.md`; that path already belongs to the
+`governance` workstream, and no executable or shared-contract scope is added.

@@ -11,3 +11,9 @@
   Compose files execute the E2E image.
 - Passed the complete host and container test suites; moved the ticket to
   publication pending protected review.
+- Recorded protected approval, merge `1125743e4854`, successful post-merge CI
+  and deletion of the remote branch; retained the ticket as the active owner
+  of the bounded post-merge documentation reconciliation.
+- Recorded explicit documentation authority and added the already
+  governance-owned root `README.md` to the ticket's previously incomplete
+  allowed path list.

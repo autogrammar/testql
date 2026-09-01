@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Classify raw HTTP response bytes through one shared parser before decoding.
+  Classic OQL exposes deterministic binary evidence as `_body`, while Unified
+  IR exposes the same `kind`, normalized MIME, byte length, SHA-256 and magic
+  fields as `body`; JSON and bounded text remain compatible.
 - Align production and E2E Docker builds with the `testql/` package layout,
   install extracted test plugins in the E2E image and remove obsolete `src/`
   mounts from all Compose configurations.
