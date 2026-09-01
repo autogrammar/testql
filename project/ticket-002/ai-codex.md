@@ -49,16 +49,20 @@ to the `core` workstream.
   classic OQL assertions and Unified IR assertions.
 - Proved the contract against the live Viewer render endpoints and expanded
   its smoke scenario to assert raw-byte evidence rather than status alone.
-- Validation passed: focused `82 passed`, full TestQL `1704 passed, 9 skipped`,
-  Viewer `596 passed, 10 skipped`, live smoke `59/59`, Ruff, isolated mypy,
-  Compose configuration and governance.
+- Validation passed: current focused `69 passed` (and the original wider
+  selection `82 passed`), full TestQL `1704 passed, 9 skipped`, Viewer source
+  suite `596 passed, 10 skipped`, live smoke `59/59`, E2E container
+  `1690 passed, 23 skipped`, production container startup, Ruff, isolated
+  mypy, all Compose configurations and governance.
 
-## Blockers
+## Resolved blockers
 
-- `Dockerfile.e2e` still copies the absent `src/` directory, so the declared
-  repository image cannot build. A clean Python 3.12 container probe of this
-  ticket's parser passes, but the image definition is owned by active
-  governance ticket `ticket-001`. Publication is blocked until that ticket
-  corrects the packaging or explicitly hands off the path.
+- `Dockerfile.e2e` previously copied the absent `src/` directory. Ticket-001
+  corrected the repository packaging in PR #7, which Validator merged to
+  `main` as `1125743e4854eed84c3ee7c6b0a5d17c572fd16f`.
 - Root `TODO.md` is also owned by ticket-001, so this ticket records its status
   here instead of creating an overlapping governance diff.
+
+Ticket-002 completed `VALIDATION` on the combined tree and moved to
+`PUBLICATION`. It does not modify or claim ownership of the Docker, Compose or
+root roadmap files brought in from `main`.
