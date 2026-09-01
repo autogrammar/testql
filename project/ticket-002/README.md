@@ -2,8 +2,8 @@
 
 - **ID**: ticket-002
 - **Owner**: unresolved:human
-- **Status**: IN_PROGRESS
-- **Workflow state**: EDIT
+- **Status**: BLOCKED
+- **Workflow state**: VALIDATION
 - **Created**: 2026-09-01
 
 ## Goal and scope
@@ -20,11 +20,11 @@ domain-specific PNG/PDF/KiCad validation.
 
 - [x] AC-01: The user's `continue` instruction is recorded as
   `SESSION_EXECUTION_AUTHORIZATION` for the stated binary-response scope.
-- [ ] AC-02: JSON objects/lists and bounded text retain their current public
+- [x] AC-02: JSON objects/lists and bounded text retain their current public
   representation.
-- [ ] AC-03: Binary bodies are never decoded as UTF-8 and expose deterministic
+- [x] AC-03: Binary bodies are never decoded as UTF-8 and expose deterministic
   `content_type`, `byte_length`, `sha256` and `magic` evidence.
-- [ ] AC-04: Classic and Unified IR API execution use the same parser and cannot
+- [x] AC-04: Classic and Unified IR API execution use the same parser and cannot
   diverge on PNG/PDF responses.
 - [ ] AC-05: Focused tests, full pytest, Docker checks and
   `project/governance-check.sh` pass.
@@ -38,6 +38,26 @@ domain-specific PNG/PDF/KiCad validation.
 2026-09-01: add `testql/**` to `core.ownedPaths` without changing any other
 workstream or delivery policy. The managed lock is updated to bind that local,
 extendable manifest.
+
+## Validation evidence
+
+- Focused HTTP/interpreter/IR suite: `82 passed`.
+- Full suite after installing the repository's four local test plugins:
+  `1704 passed, 9 skipped`.
+- Ruff and isolated mypy check for the new dependency-free parser: passed.
+- Viewer live scenarios against `127.0.0.1:8088`: `59/59 passed`, including
+  byte-derived MIME/magic/size assertions for two PNG files, two SVG files and
+  one PDF file.
+- Viewer full suite: `596 passed, 10 skipped`; PCB/SCH hashes unchanged.
+- Compose configuration for all three declared files: passed.
+- Python 3.12 container probe of PNG/PDF byte classification: passed.
+- Managed governance check: passed.
+
+The repository-authored `Dockerfile.e2e` check is still red before this ticket's
+code is installed: it executes `COPY src/ ./src/`, but this repository uses
+`testql/`. That file is reserved by active governance ticket `ticket-001`, so
+ticket-002 cannot change it without violating workstream ownership. AC-05 and
+publication remain blocked on ticket-001 or an explicit integration hand-off.
 
 ## Participants
 

@@ -2,3 +2,7 @@
 2026-09-01T06:50:26Z BLOCKED GOV-WORKSTREAM-003 core owns src/** and tests/**; production package is testql/**
 2026-09-01T07:05:00Z AUTHORIZATION user="tak" scope="add testql/** to core.ownedPaths"
 2026-09-01T07:05:00Z EDIT ticket=ticket-002 blocker=resolved
+2026-09-01T07:35:52Z IMPLEMENTATION commit=dbf247a parser=shared classic=enabled ir=enabled
+2026-09-01T07:35:52Z VALIDATION focused="82 passed" full="1704 passed, 9 skipped" viewer="596 passed, 10 skipped" live="59/59 passed"
+2026-09-01T07:35:52Z DOCKER compose=config-pass parser-python3.12=pass image=fail reason="Dockerfile.e2e COPY src/: source absent"
+2026-09-01T07:35:52Z BLOCKED owner=ticket-001 path=Dockerfile.e2e publication=pending
