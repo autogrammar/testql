@@ -30,7 +30,23 @@ was reported, is `SESSION_EXECUTION_AUTHORIZATION` for this bounded repair.
 - Created a separate ticket-001 worktree and branch from `origin/main`.
 - Recorded the user's continuation authority without inventing human-owned
   participant content.
+- Replaced the obsolete `src/` Docker inputs with the actual `testql/` package,
+  copied the build metadata required by the wheel and added a working CLI
+  entrypoint to the production image.
+- Added a cached runtime stage and an E2E stage containing tests, root scenarios,
+  `.testql` contracts and all local plugin sources needed by configured pytest.
+- Installed the GraphQL, Proto, SQL and desktop plugins as editable packages so
+  their entry points are discoverable during E2E execution.
+- Set `PYTHONPATH=/app` so copied source assets such as NL lexicons and bundled
+  diagnostic scenarios remain available even though the current wheel package
+  data does not include them.
+- Pointed all three Compose files at `Dockerfile.e2e` and removed stale bind
+  mounts, producing reproducible tests from the image itself.
+- Validation passed: runtime CLI/assets, `77` focused plugin tests, `183`
+  resource regressions, full container/Compose `1683 passed, 23 skipped`, host
+  `1697 passed, 9 skipped`, all Compose configs and governance.
 
 ## Blockers
 
-- None at the planning boundary.
+- Implementation has no technical blocker. Publication still requires the
+  repository's protected review bound to the final HEAD.

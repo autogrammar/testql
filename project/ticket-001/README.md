@@ -3,7 +3,7 @@
 - **ID**: ticket-001
 - **Owner**: unresolved:human
 - **Status**: IN_PROGRESS
-- **Workflow state**: EDIT
+- **Workflow state**: PUBLICATION
 - **Created**: 2026-08-17
 
 ## Goal and scope
@@ -18,13 +18,29 @@ exercise the E2E image without obsolete `src/` mounts.
 
 - [x] AC-01: The user's `continue` instruction after the exact Docker blocker
   was reported is recorded as `SESSION_EXECUTION_AUTHORIZATION`.
-- [ ] AC-02: `Dockerfile` builds and starts the TestQL CLI from `testql/`.
-- [ ] AC-03: `Dockerfile.e2e` installs the local SQL, Proto, GraphQL and desktop
+- [x] AC-02: `Dockerfile` builds and starts the TestQL CLI from `testql/`.
+- [x] AC-03: `Dockerfile.e2e` installs the local SQL, Proto, GraphQL and desktop
   plugins and runs the complete configured pytest suite.
-- [ ] AC-04: All declared Compose files resolve to the E2E Dockerfile without
+- [x] AC-04: All declared Compose files resolve to the E2E Dockerfile without
   an obsolete `src/` bind mount.
-- [ ] AC-05: Focused Docker builds/tests, host pytest and the managed governance
+- [x] AC-05: Focused Docker builds/tests, host pytest and the managed governance
   check pass.
+
+## Validation evidence
+
+- Production image build and `testql --version`: passed (`1.2.67`).
+- Runtime lexicon and bundled scenario probe: passed.
+- Focused plugin/IR container suite: `77 passed`.
+- Focused packaged-resource regression: `183 passed`.
+- Complete E2E image: `1683 passed, 23 skipped`.
+- Complete E2E execution through `compose.e2e.yml`: `1683 passed, 23 skipped`.
+- Host suite: `1697 passed, 9 skipped`.
+- All three Compose configurations and managed governance check: passed.
+
+The runtime image is approximately 707 MB because the current mandatory
+dependency graph pulls Playwright, LiteLLM, pandas, boto3 and notebook tooling.
+Dependency separation belongs to the integration workstream and is deliberately
+not mixed into this packaging repair.
 
 ## Participants
 

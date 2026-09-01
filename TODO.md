@@ -50,7 +50,7 @@ Last updated: 2026-05-08 (1.2.50 — multi-scenario watchdog + docs update)
 
 ## 📋 Technical Debt & Code Quality
 
-- [ ] Repair Docker build inputs after the package moved from `src/` to
+- [x] Repair Docker build inputs after the package moved from `src/` to
   `testql/`, and make the E2E image install the extracted local plugins.
 
 > **Note:** Complete prefact-generated issues (848 items) archived to `.archive/TODO_prefact_2026-04-25.md`
