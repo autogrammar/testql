@@ -8,3 +8,4 @@
 - Locked `setuptools==84.0.0` and `wheel==0.48.0` in the dev graph.
 - Validated resolver-free metadata installation for all four local plugins and
   restored their GraphQL, Proto and SQL entry points.
+- Recorded trusted exact-head publication and closed the prerequisite ticket.
