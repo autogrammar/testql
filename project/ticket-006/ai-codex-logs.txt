@@ -1,0 +1,4 @@
+2026-09-01T22:36:01Z SESSION_EXECUTION_AUTHORIZATION recorded for TestQL issue #10 and semcod/koru#64.
+2026-09-01T22:37:00Z EDIT base=ab9e899b916a1933c6219fc05cf39949d557141c workstream=integration prerequisite_for=ticket-005.
+2026-09-01T22:38:00Z VALIDATION uv_lock=190_packages build_tools=setuptools-84.0.0,wheel-0.48.0 plugin_install=no-build-isolation,no-deps entrypoints=graphql,proto,sql focused_tests=77_passed.
+2026-09-01T22:39:00Z VALIDATION governance=GOV-PASS compose=3_passed docker_build_checks=2_passed workflow=PUBLICATION.

@@ -62,6 +62,9 @@ graphql = ["graphql-core>=3.2"]
 nlp2env = ["mcp>=1.0", "nlp2env[mcp]>=0.1.2"]
 mcp = ["mcp>=1.0"]
 dev = ["pytest", "pytest-asyncio", "pytest-cov",
+    # Build local E2E plugin metadata without an isolated dependency resolver.
+    "setuptools>=68",
+    "wheel",
     "mcp>=1.0",
     "fastapi",
     "goal>=2.1.0",
