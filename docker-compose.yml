@@ -1,7 +1,6 @@
 services:
   app:
-    build: .
-    volumes:
-      - ./src:/app/src
-      - ./tests:/app/tests
-    command: ["pytest", "-q"]
+    build:
+      context: .
+      dockerfile: Dockerfile.e2e
+    command: ["pytest", "-q", "--no-cov"]

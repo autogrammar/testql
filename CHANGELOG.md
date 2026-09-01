@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Align production and E2E Docker builds with the `testql/` package layout,
+  install extracted test plugins in the E2E image and remove obsolete `src/`
+  mounts from all Compose configurations.
 - Restore the TestTOON adapter/interpreter import path after source modules were
   accidentally left empty, so `python -m testql run-ir` starts normally.
 - Normalize compact API `assert_key` fields into the IR response `data` envelope
