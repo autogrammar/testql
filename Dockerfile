@@ -1,14 +1,24 @@
-FROM python:3.12-slim AS runtime
+FROM ghcr.io/astral-sh/uv:0.11.28@sha256:0f36cb9361a3346885ca3677e3767016687b5a170c1a6b88465ec14aefec90aa AS uv
+
+FROM python:3.12.14-slim-bookworm@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254 AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    VIRTUAL_ENV=/app/.venv \
+    PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
 
-COPY pyproject.toml README.md ./
-COPY testql/ ./testql/
+COPY --from=uv /uv /uvx /bin/
+COPY pyproject.toml uv.lock README.md ./
+RUN uv lock --check --no-sources && \
+    uv sync --frozen --no-dev --extra nlp2env \
+    --no-editable --no-install-project
 
-RUN pip install --no-cache-dir .
+COPY testql/ ./testql/
+RUN uv sync --frozen --no-dev --extra nlp2env --no-editable
 
 ENV PYTHONPATH=/app
 
