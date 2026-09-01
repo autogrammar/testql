@@ -3,43 +3,15 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from nlp2env.toon_scenarios import PromptScenario
 
 _HEADER_RE = re.compile(r"^([A-Z_]+)(?:\[(\d+)\])?\{([^}]*)\}:\s*$")
 _META_RE = re.compile(r"^#\s*([A-Z_]+):\s*(.+)$")
 _NLP2ENV_SECTIONS = frozenset({"PROMPTS", "PROMPT_FIELDS", "ASSERT_ENV", "CONFIG"})
-
-
-@dataclass
-class PromptScenario:
-    prompt_id: str
-    fields: dict[str, str] = field(default_factory=dict)
-    expects: list[str] = field(default_factory=list)
-
-    @property
-    def nl(self) -> str:
-        return self.fields.get("nl", "")
-
-    @property
-    def source(self) -> str:
-        return self.fields.get("source", "inline").lower()
-
-    @property
-    def tool(self) -> str:
-        return self.fields.get("tool", "")
-
-    @property
-    def after(self) -> str:
-        return self.fields.get("after", "")
-
-    @property
-    def assert_configured(self) -> bool:
-        return self.fields.get("assert_configured", "").lower() in {"1", "true", "yes"}
-
-    def inline_arguments(self) -> dict[str, str]:
-        skip = {"nl", "source", "tool", "after", "assert_configured", "lang", "id"}
-        return {k: v for k, v in self.fields.items() if k not in skip and v}
 
 
 def _strip_quoted(line: str) -> str:
@@ -177,6 +149,8 @@ def _prompt_id_column(prompt_cols: list[str]) -> str:
 
 
 def scenarios_from_parsed(parsed: dict[str, object]) -> list[PromptScenario]:
+    from nlp2env.toon_scenarios import PromptScenario
+
     sections = parsed.get("sections", {})
     assert isinstance(sections, dict)
     prompts = sections.get("PROMPTS")

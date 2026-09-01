@@ -1,6 +1,8 @@
 """Execute TYPE: nlp2env TestTOON scenarios (NL → MCP → .env)."""
 
-from .scenarios import PromptScenario, load_scenarios, load_scenarios_file, scenario_count
+from nlp2env.toon_scenarios import PromptScenario
+
+from .scenarios import load_scenarios, load_scenarios_file, scenario_count
 
 __all__ = [
     "Nlp2EnvRunner",
