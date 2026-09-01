@@ -1,0 +1,80 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-004",
+  "summary": "Generate portable Docker lockfile",
+  "workstream": "integration",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P2",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    "project/ticket-004/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "uv.lock"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": ["docker"],
+  "dependsOn": ["ticket-003"],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "3fcd119a658f9f7dcce81cdddb05ae8fd7e9a64e",
+    "targetBranch": "main",
+    "outcome": "A portable frozen uv lockfile resolved from published package metadata.",
+    "nonGoals": [
+      "Change declared dependencies or package behavior.",
+      "Modify Docker runtime stages in this ticket."
+    ],
+    "complexity": "XS",
+    "estimatedMinutes": 10,
+    "budgets": {
+      "maxImplementationFiles": 1,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Resolve uv.lock with --no-sources so external builds never depend on a developer-relative checkout.",
+      "components": [
+        {
+          "name": "dependency-lock",
+          "paths": ["uv.lock"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": ["Add the resolved dependency graph in uv.lock."],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert the lockfile commit; no source or declared dependency changes are coupled to it."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "uv lock --no-sources",
+          "test $(rg -c 'source = \\{ editable = ' uv.lock) -eq 1",
+          "! rg 'source = \\{ directory|\\.\\./\\.\\.|/home/' uv.lock"
+        ],
+        "evidence": "Only the root project uses uv's standard editable-dot record; every external dependency resolves from registry metadata."
+      },
+      {
+        "criterion": "AC-03",
+        "commands": ["uv lock --check --no-sources"],
+        "evidence": "The generated graph is current and reproducible under no-sources resolution."
+      },
+      {
+        "criterion": "AC-04",
+        "commands": ["./project/governance-check.sh", "docker build --check ."],
+        "evidence": "Managed governance and the declared Docker stack pass."
+      }
+    ]
+  }
+}

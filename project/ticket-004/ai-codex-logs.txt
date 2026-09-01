@@ -1,0 +1,5 @@
+2026-09-01T22:02:11Z SESSION_EXECUTION_AUTHORIZATION recorded for TestQL issue #10 and semcod/koru#64.
+2026-09-01T22:05:00Z EDIT base=3fcd119a658f9f7dcce81cdddb05ae8fd7e9a64e workstream=integration.
+2026-09-01T22:08:00Z LOCK uv=0.11.28 packages=188 sha256=efe18353c7fc9edb6ab1963f11a92b54000a13afbd59229542bfa1d38185f1a7 external_sources=registry-only.
+2026-09-01T22:09:00Z VALIDATION locked_sync=pass extra=nlp2env cli=1.2.67 governance=pass compose=pass docker_check=pass diff_check=pass.
+2026-09-01T22:09:00Z PUBLICATION ready=true.
