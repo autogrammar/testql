@@ -4,3 +4,4 @@
 
 - Created the bounded integration ticket for the portable Docker lockfile.
 - Generated and validated the portable, registry-resolved `uv.lock`.
+- Recorded trusted exact-head publication and closed the ticket.

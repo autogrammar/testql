@@ -31,7 +31,15 @@ lock must therefore be resolved with `--no-sources` from publishable metadata.
   1.2.67.
 - Governance, Compose and Docker build checks passed; moved to protected
   publication.
+- Required CI passed; Validator run `33565378018` approved exact HEAD
+  `0c8faed91ee8` and merged PR #13 as `8e759086b8e4`. The remote branch and
+  verified disposable worktree were removed.
 
 ## Blockers
 
 - None.
+
+## Publication
+
+Complete. The deterministic approval remained authoritative when advisory LLM
+review exceeded its chunk budget.
