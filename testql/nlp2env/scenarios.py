@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from nlp2env.toon_scenarios import PromptScenario
+if TYPE_CHECKING:
+    from nlp2env.toon_scenarios import PromptScenario
 
 _HEADER_RE = re.compile(r"^([A-Z_]+)(?:\[(\d+)\])?\{([^}]*)\}:\s*$")
 _META_RE = re.compile(r"^#\s*([A-Z_]+):\s*(.+)$")
@@ -147,6 +149,8 @@ def _prompt_id_column(prompt_cols: list[str]) -> str:
 
 
 def scenarios_from_parsed(parsed: dict[str, object]) -> list[PromptScenario]:
+    from nlp2env.toon_scenarios import PromptScenario
+
     sections = parsed.get("sections", {})
     assert isinstance(sections, dict)
     prompts = sections.get("PROMPTS")
