@@ -16,7 +16,6 @@ dependencies = [
     "jsonschema>=4.21",
     "goal>=2.1.0",
     "costs>=0.1.20",
-    "pfix>=0.1.60",
     "websockets>=13.0",
     "pytest-cov>=7.0",
     "fastapi>=0.100",
@@ -69,7 +68,6 @@ dev = ["pytest", "pytest-asyncio", "pytest-cov",
     "fastapi",
     "goal>=2.1.0",
     "costs>=0.1.20",
-    "pfix>=0.1.60",
     "sqlglot>=20.0",
     "protobuf>=4.21",
     "graphql-core>=3.2",
@@ -97,10 +95,6 @@ testql = [
 [tool.uv.sources]
 vdisplay = { path = "../../wronai/vdisplay", editable = true }
 
-[tool.pfix]
-# Self-healing Python configuration
-model = "openrouter/qwen/qwen3-coder-next"
-
 [tool.pytest.ini_options]
 addopts = "--cov=testql --cov-report=term-missing --cov-report=json"
 pythonpath = ["packages"]
@@ -117,20 +111,6 @@ markers = [
     "live_llm: optional live LLM integration (requires TESTQL_LIVE_LLM=1 and API key)",
     "live_desktop: optional live wmctrl/desktop probe on host with GUI session",
 ]
-
-[tool.pfix.runtime]
-auto_apply = true
-auto_install_deps = true
-auto_restart = false
-max_retries = 3
-create_backups = false
-git_auto_commit = false
-
-[tool.pfix.runtime_todo]
-enabled = true
-todo_file = "TODO.md"
-min_severity = "low"
-deduplicate = true
 
 [tool.costs]
 # AI Cost tracking configuration
