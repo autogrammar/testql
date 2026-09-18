@@ -6,3 +6,5 @@
 2026-09-01T23:07:26Z RESUME prerequisite=ticket-006 main=2528dcfcfe95b1b786016bf9956900f6f1797843 status=IN_PROGRESS workflow=EDIT.
 2026-09-01T23:10:41Z VALIDATION runtime_image=sha256:a78e6ba5e881b196eac6a12839fc93aca299664413260127433d6f68c2cf1fd1 cli=1.2.67 uv=0.11.28 nlp2env=0.1.6.
 2026-09-01T23:10:41Z VALIDATION e2e_image=sha256:a68a4fbe88dfc505771f9aebb2f2e3ae09c83e37651aa9208d31ac74a26f4744 entrypoints=graphql,proto,sql tests="1701 passed, 12 skipped, 1 warning" workflow=PUBLICATION.
+2026-09-01T23:24:34Z PUBLICATION validator_run=33570788110 review=5084068174 exact_head=24fb08858c75ba3bca4fcd17fa97d64a93a0836d merge=d08d033607eb57f9c094856d0fb0d1adef88c8d5 required_check=test issue_10=closed branch_deleted=true.
+2026-09-01T23:25:11Z DONE ticket=ticket-005.

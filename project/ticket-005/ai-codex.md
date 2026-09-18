@@ -34,7 +34,15 @@ published plugin sources allow both paths to be resolver-free.
 - Built both images from scratch on immutable base digests. Production reports
   TestQL 1.2.67, uv 0.11.28 and `nlp2env` 0.1.6; the E2E image exposes all
   required plugin entry points and passes 1701 tests with 12 skips.
+- Required CI passed; Validator run `33570788110` approved exact HEAD
+  `24fb08858c75` and merged PR #17 as `d08d033607eb`. TestQL issue #10 closed,
+  and the verified implementation worktree and branch were removed.
 
 ## Blockers
 
 - None. Ticket 006 supplied and validated the frozen build-tool prerequisite.
+
+## Publication
+
+Complete. Protected review `5084068174` binds the repository, PR, exact
+implementation HEAD, ticket and validator actor.

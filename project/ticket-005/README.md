@@ -2,7 +2,7 @@
 
 - **ID**: ticket-005
 - **Owner**: unresolved:human
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: PUBLICATION
 - **Created**: 2026-09-01
 
@@ -30,7 +30,7 @@ dependency resolver or isolated build environment.
   require no package resolver.
 - [x] AC-05: Both images build; production CLI, package tests, Compose,
   governance and Docker checks pass.
-- [ ] AC-06: Exact-head protected publication closes TestQL issue #10 and
+- [x] AC-06: Exact-head protected publication closes TestQL issue #10 and
   provides an immutable revision for Koru.
 
 ## Authorization
@@ -59,6 +59,15 @@ ticket resumes on merged revision `2528dcfcfe95b1b786016bf9956900f6f1797843`.
 - Full container suite: `1701 passed, 12 skipped, 1 warning` in 17.82 seconds;
   all 1713 previously collected cases completed without failure.
 - Both Docker build checks and all three root Compose configurations pass.
+
+## Publication evidence
+
+Required CI passed and Validator run `33570788110` approved exact HEAD
+`24fb08858c75ba3bca4fcd17fa97d64a93a0836d` with protected review
+`5084068174`. PR #17 merged as
+`d08d033607eb57f9c094856d0fb0d1adef88c8d5` on 2026-09-01 and closed TestQL
+issue #10. Its remote ticket branch was deleted; the clean disposable
+implementation worktree and fully reachable local branch were removed.
 
 ## Participants
 

@@ -9,3 +9,5 @@
 - Installed local E2E plugin metadata without build isolation or dependency
   resolution and validated the full 1713-case container suite.
 - Planned digest-pinned, frozen-lock Docker builds for runtime and E2E.
+- Recorded trusted exact-head publication, closed issue #10 and closed the
+  implementation ticket.
