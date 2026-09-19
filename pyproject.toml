@@ -60,7 +60,7 @@ proto = ["protobuf>=4.21"]
 graphql = ["graphql-core>=3.2"]
 nlp2env = ["mcp>=1.0", "nlp2env[mcp]>=0.1.2"]
 mcp = ["mcp>=1.0"]
-dev = ["pytest", "pytest-asyncio", "pytest-cov",
+dev = ["wellman>=0.20.36", "pytest", "pytest-asyncio", "pytest-cov",
     # Build local E2E plugin metadata without an isolated dependency resolver.
     "setuptools>=68",
     "wheel",
@@ -76,6 +76,9 @@ dev = ["pytest", "pytest-asyncio", "pytest-cov",
     # `playwright install chromium`.
     "playwright>=1.40",
 ]
+
+[dependency-groups]
+governance = ["wellman>=0.20.36"]
 
 [tool.setuptools.packages.find]
 include = ["testql*"]
@@ -96,8 +99,13 @@ testql = [
 vdisplay = { path = "../../wronai/vdisplay", editable = true }
 
 [tool.pytest.ini_options]
-addopts = "--cov=testql --cov-report=term-missing --cov-report=json"
-pythonpath = ["packages"]
+addopts = "-p wellmanifest_governance --cov=testql --cov-report=term-missing --cov-report=json"
+pythonpath = [".", "packages"]
+
+[tool.wellmanifest]
+standard = "0.20.35"
+revision = "cfaa0bf0ea6b0e7349fed0bb62b5ce15792d687d"
+gate = "project/governance-check.sh"
 # Core suite + extracted plugin packages — bare `pytest` runs everything.
 # Core tests skip plugin-dependent cases when a plugin is not installed.
 testpaths = [
