@@ -101,11 +101,6 @@ vdisplay = { path = "../../wronai/vdisplay", editable = true }
 [tool.pytest.ini_options]
 addopts = "-p wellmanifest_governance --cov=testql --cov-report=term-missing --cov-report=json"
 pythonpath = [".", "packages"]
-
-[tool.wellmanifest]
-standard = "0.20.35"
-revision = "cfaa0bf0ea6b0e7349fed0bb62b5ce15792d687d"
-gate = "project/governance-check.sh"
 # Core suite + extracted plugin packages — bare `pytest` runs everything.
 # Core tests skip plugin-dependent cases when a plugin is not installed.
 testpaths = [
@@ -119,6 +114,11 @@ markers = [
     "live_llm: optional live LLM integration (requires TESTQL_LIVE_LLM=1 and API key)",
     "live_desktop: optional live wmctrl/desktop probe on host with GUI session",
 ]
+
+[tool.wellmanifest]
+standard = "0.20.35"
+revision = "cfaa0bf0ea6b0e7349fed0bb62b5ce15792d687d"
+gate = "project/governance-check.sh"
 
 [tool.costs]
 # AI Cost tracking configuration
