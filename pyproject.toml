@@ -60,7 +60,7 @@ proto = ["protobuf>=4.21"]
 graphql = ["graphql-core>=3.2"]
 nlp2env = ["mcp>=1.0", "nlp2env[mcp]>=0.1.2"]
 mcp = ["mcp>=1.0"]
-dev = ["wellman>=0.20.36", "pytest", "pytest-asyncio", "pytest-cov",
+dev = ["wellman>=0.20.35", "pytest", "pytest-asyncio", "pytest-cov",
     # Build local E2E plugin metadata without an isolated dependency resolver.
     "setuptools>=68",
     "wheel",
@@ -78,7 +78,7 @@ dev = ["wellman>=0.20.36", "pytest", "pytest-asyncio", "pytest-cov",
 ]
 
 [dependency-groups]
-governance = ["wellman>=0.20.36"]
+governance = ["wellman>=0.20.35"]
 
 [tool.setuptools.packages.find]
 include = ["testql*"]
