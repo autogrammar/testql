@@ -151,6 +151,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
+coverage.json
 *.cover
 *.py.cover
 .hypothesis/
@@ -317,14 +318,19 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 dist/
-build/
 .aider*
-.aider*
-.aider*
-.aider*
-.aider*
+!.aider.conf.yml
 
 # Koru/planfile runtime artifacts
 .koru/
 .nlp2dsl/
 .planfile/
+
+# Repository-local worktrees and operational state
+/.worktrees/
+/.subactor/leases/
+/.subactor/sessions/
+/.subactor/recovery/
+/.subactor/receipts/
+/.subactor/cache/
+/.subactor/snapshots/
