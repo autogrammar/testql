@@ -16,6 +16,7 @@
     "project/ticket-006/README.md",
     "project/ticket-007/README.md",
     ".governance/**",
+    "coverage.json",
     "pyproject.toml",
     "AGENTS.md",
     "CLAUDE.md",
@@ -90,6 +91,7 @@
             "project/TICKETS.md",
             ".gitattributes",
             ".gitignore",
+            "coverage.json",
             "project.bat",
             "project.sh"
           ]

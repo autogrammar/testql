@@ -99,7 +99,7 @@ testql = [
 vdisplay = { path = "../../wronai/vdisplay", editable = true }
 
 [tool.pytest.ini_options]
-addopts = "-p wellmanifest_governance --cov=testql --cov-report=term-missing --cov-report=json"
+addopts = "-p wellmanifest_governance --cov=testql --cov-report=term-missing"
 pythonpath = [".", "packages"]
 # Core suite + extracted plugin packages — bare `pytest` runs everything.
 # Core tests skip plugin-dependent cases when a plugin is not installed.
