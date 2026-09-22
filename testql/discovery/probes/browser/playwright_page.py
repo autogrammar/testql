@@ -15,6 +15,23 @@ from testql.discovery.probes.base import BaseProbe, ProbeResult
 from testql.discovery.source import ArtifactSource, SourceKind
 
 
+def _find_browser_executable() -> str | None:
+    import os
+    from pathlib import Path
+    env_bin = os.environ.get("PLAYWRIGHT_CHROME") or os.environ.get("CLONERD_CHROMIUM")
+    if env_bin and Path(env_bin).exists():
+        return env_bin
+    for candidate in [
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/google-chrome",
+        "/usr/bin/chromium",
+        "/snap/bin/chromium",
+    ]:
+        if Path(candidate).exists():
+            return candidate
+    return None
+
+
 class PlaywrightPageProbe(BaseProbe):
     name = "browser.playwright_page"
     artifact_types = ("web_page", "browser_page")
@@ -41,8 +58,12 @@ class PlaywrightPageProbe(BaseProbe):
         network_calls: list[dict[str, Any]] = []
 
         with sync_playwright() as p:
-            browser = p.chromium.launch(args=["--no-sandbox", "--disable-setuid-sandbox"])
-            page = browser.new_page()
+            exe = _find_browser_executable()
+            launch_kwargs = {"args": ["--no-sandbox", "--disable-setuid-sandbox"]}
+            if exe:
+                launch_kwargs["executable_path"] = exe
+            browser = p.chromium.launch(**launch_kwargs)
+            page = browser.new_page(viewport={"width": 1440, "height": 900})
 
             page.on("console", lambda msg: console_errors.append(msg.text) if msg.type == "error" else None)
             page.on("request", lambda req: network_calls.append({"url": req.url, "method": req.method, "resource_type": req.resource_type}))
@@ -81,6 +102,94 @@ class PlaywrightPageProbe(BaseProbe):
                     method: (f.method || 'get').toLowerCase(),
                 }))
             """)
+            layout_anomalies = page.evaluate("""
+                () => {
+                    const anomalies = [];
+                    function getClassName(el) {
+                        if (!el) return '';
+                        if (typeof el.className === 'string') return el.className;
+                        if (el.className && typeof el.className.baseVal === 'string') return el.className.baseVal;
+                        return el.getAttribute('class') || '';
+                    }
+                    function getSelector(el) {
+                        if (!el) return '';
+                        if (el.id) return `#${el.id}`;
+                        const cls = getClassName(el).trim().split(/\\s+/).filter(Boolean)[0];
+                        return cls ? `.${cls}` : el.tagName.toLowerCase();
+                    }
+
+                    const all = Array.from(document.querySelectorAll('body *')).filter(el => {
+                        const style = window.getComputedStyle(el);
+                        const rect = el.getBoundingClientRect();
+                        return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0 && rect.width > 0 && rect.height > 0;
+                    });
+
+                    // 1. Horizontal viewport overflow
+                    for (const el of all) {
+                        const rect = el.getBoundingClientRect();
+                        if (rect.right > window.innerWidth + 1.5 || rect.left < -1.5) {
+                            anomalies.push({
+                                type: 'viewport_overflow',
+                                element: getSelector(el),
+                                text: (el.innerText || '').slice(0, 50).trim(),
+                                details: `right: ${rect.right.toFixed(1)}px > viewport: ${window.innerWidth}px`
+                            });
+                        }
+                    }
+
+                    // 2. Container boundary breakout (child extending outside its parent box)
+                    for (const el of all) {
+                        const parent = el.parentElement;
+                        if (!parent || parent.tagName === 'BODY' || parent.tagName === 'HTML') continue;
+                        const pRect = parent.getBoundingClientRect();
+                        const cRect = el.getBoundingClientRect();
+                        const pStyle = window.getComputedStyle(parent);
+                        if (pStyle.overflowX !== 'visible' || ['relative', 'static', 'flex', 'grid'].includes(pStyle.position)) {
+                            if (cRect.right > pRect.right + 2 && pRect.width > 50) {
+                                anomalies.push({
+                                    type: 'container_breakout',
+                                    element: getSelector(el),
+                                    container: getSelector(parent),
+                                    text: (el.innerText || '').slice(0, 50).trim(),
+                                    details: `child right (${cRect.right.toFixed(1)}px) exceeds container right (${pRect.right.toFixed(1)}px) by ${(cRect.right - pRect.right).toFixed(1)}px`
+                                });
+                            }
+                        }
+                    }
+
+                    // 3. Squished text / flex squishing
+                    for (const el of all) {
+                        if (['P', 'SPAN', 'DIV', 'LABEL'].includes(el.tagName)) {
+                            const text = (el.innerText || '').trim();
+                            const words = text.split(/\\s+/).length;
+                            const cRect = el.getBoundingClientRect();
+                            if (words >= 6 && cRect.width > 0 && cRect.width < 105 && cRect.height > 80) {
+                                anomalies.push({
+                                    type: 'squished_text',
+                                    element: getSelector(el),
+                                    text: text.slice(0, 50),
+                                    details: `text with ${words} words compressed to width ${cRect.width.toFixed(1)}px (height ${cRect.height.toFixed(1)}px)`
+                                });
+                            }
+                        }
+                    }
+
+                    // 4. Clipped scroll overflow
+                    for (const el of all) {
+                        const style = window.getComputedStyle(el);
+                        if (['hidden', 'clip'].includes(style.overflowX) && el.scrollWidth > el.clientWidth + 2) {
+                            anomalies.push({
+                                type: 'clipped_overflow',
+                                element: getSelector(el),
+                                text: (el.innerText || '').slice(0, 50).trim(),
+                                details: `scrollWidth (${el.scrollWidth}px) > clientWidth (${el.clientWidth}px)`
+                            });
+                        }
+                    }
+
+                    return anomalies.slice(0, 25);
+                }
+            """)
 
             browser.close()
 
@@ -93,6 +202,7 @@ class PlaywrightPageProbe(BaseProbe):
             "assets": [{"url": a["url"], "tag": a["tag"], "kind": _asset_kind(a)} for a in assets[:100]],
             "forms": forms[:25],
             "console_errors": console_errors[:50],
+            "layout_anomalies": layout_anomalies,
             "network_calls": [{"url": n["url"], "method": n["method"], "resource_type": n["resource_type"]} for n in network_calls[:200]],
             "page_schema": {
                 "url": final_url,
@@ -102,6 +212,7 @@ class PlaywrightPageProbe(BaseProbe):
                 "assets": assets[:100],
                 "forms": forms[:25],
                 "console_errors": console_errors[:50],
+                "layout_anomalies": layout_anomalies,
                 "network_calls": network_calls[:200],
             },
             "interfaces": [{"type": "browser_page", "location": final_url, "metadata": {"status_code": status_code, "title": title}}],
