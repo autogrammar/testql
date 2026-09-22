@@ -28,7 +28,7 @@ class FakeBrowserLauncher:
 
 
 class FakeBrowser:
-    def new_page(self):
+    def new_page(self, **kwargs):
         return FakePage()
 
     def close(self):
@@ -73,6 +73,16 @@ class FakePage:
             return []
         if "form" in script:
             return [{"action": "https://example.test/contact", "method": "post"}]
+        if "layout_anomalies" in script or "container_breakout" in script:
+            return [
+                {
+                    "type": "container_breakout",
+                    "element": ".muted",
+                    "container": ".choice-card",
+                    "text": "Plan description overflowing",
+                    "details": "child right (911px) exceeds container right (896px)",
+                }
+            ]
         return []
 
 
@@ -108,3 +118,6 @@ def test_playwright_probe_collects_console_and_network(mock_playwright):
     assert meta["console_errors"][0] == "Test console error"
     assert len(meta["network_calls"]) == 1
     assert meta["network_calls"][0]["url"] == "https://example.test/api"
+    assert len(meta["layout_anomalies"]) == 1
+    assert meta["layout_anomalies"][0]["type"] == "container_breakout"
+

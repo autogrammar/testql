@@ -231,11 +231,31 @@ def _browser_checks(topology: TopologyManifest, use_browser: bool) -> list[Check
         _check_browser_render(page.id, metadata),
         _check_browser_console(page.id, metadata),
         _check_browser_network(page.id, metadata),
+        _check_browser_layout_anomalies(page.id, metadata),
     ]
 
 
+def _check_browser_layout_anomalies(node_id: str, metadata: dict) -> CheckResult:
+    anomalies = metadata.get("layout_anomalies") or []
+    if anomalies:
+        types = {a.get("type") for a in anomalies}
+        return CheckResult(
+            "check.browser.layout",
+            "failed",
+            f"{len(anomalies)} layout anomaly/anomalies detected ({', '.join(sorted(types))}).",
+            node_id=node_id,
+            metadata={"anomalies": anomalies, "count": len(anomalies)},
+        )
+    return CheckResult(
+        "check.browser.layout",
+        "passed",
+        "No visual layout anomalies, container breakouts, or clipped overflows detected.",
+        node_id=node_id,
+    )
+
+
 def _check_browser_render(node_id: str, metadata: dict) -> CheckResult:
-    if metadata.get("console_errors") is not None or metadata.get("network_calls") is not None:
+    if metadata.get("console_errors") is not None or metadata.get("network_calls") is not None or metadata.get("layout_anomalies") is not None:
         return CheckResult("check.browser.render", "passed", "Page was rendered in a browser environment.", node_id=node_id)
     return CheckResult("check.browser.render", "warning", "No browser-rendered metadata detected; page may be static HTML only.", node_id=node_id)
 
@@ -457,6 +477,7 @@ def _likely_cause(check: CheckResult) -> str:
         "check.browser.render": "The page was not rendered in a browser; JavaScript-rendered content was not evaluated.",
         "check.browser.console": "Console errors were detected during browser page load, indicating potential JS issues.",
         "check.browser.network": "No network calls were captured during browser page load; this may indicate an empty or static page.",
+        "check.browser.layout": "Elements break out of parent container bounds, text is squished into narrow columns, or elements overflow viewport horizontally.",
     }
     return causes.get(check.id, "Topology check did not meet the expected condition.")
 
@@ -484,6 +505,8 @@ def _action_type(finding: FailureFinding) -> str:
         return "fix_js_errors"
     if "browser.network" in finding.id:
         return "investigate_static_page"
+    if "browser.layout" in finding.id:
+        return "fix_layout_styling"
     return "investigate_topology"
 
 
