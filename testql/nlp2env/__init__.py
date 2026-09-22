@@ -1,7 +1,5 @@
 """Execute TYPE: nlp2env TestTOON scenarios (NL → MCP → .env)."""
 
-from nlp2env.toon_scenarios import PromptScenario
-
 from .scenarios import load_scenarios, load_scenarios_file, scenario_count
 
 __all__ = [
@@ -19,6 +17,13 @@ def __getattr__(name: str):
         from .runner import Nlp2EnvRunner
 
         return Nlp2EnvRunner
+    if name == "PromptScenario":
+        try:
+            from nlp2env.toon_scenarios import PromptScenario
+
+            return PromptScenario
+        except ImportError:
+            return None
     if name == "run_nlp2env_file":
         from .runner import run_nlp2env_file
 

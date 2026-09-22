@@ -11,7 +11,10 @@ from pathlib import Path
 from testql.base import ScriptResult, StepResult, StepStatus
 from testql.nlp2env.llm import resolve_llm_backend, translate_nl_to_mcp
 from testql.nlp2env.mcp_client import assert_ok, mcp_call
-from nlp2env.toon_scenarios import PromptScenario
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from nlp2env.toon_scenarios import PromptScenario
 
 from testql.nlp2env.scenarios import load_scenarios_file
 

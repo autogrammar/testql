@@ -141,6 +141,7 @@ class PlaywrightPageProbe(BaseProbe):
                     for (const el of all) {
                         const parent = el.parentElement;
                         if (!parent || parent.tagName === 'BODY' || parent.tagName === 'HTML') continue;
+                        if (el.ownerSVGElement) continue;
                         const pRect = parent.getBoundingClientRect();
                         const cRect = el.getBoundingClientRect();
                         const pStyle = window.getComputedStyle(parent);
