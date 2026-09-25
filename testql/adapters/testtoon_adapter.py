@@ -104,6 +104,27 @@ def _gui_section_to_steps(section: ToonSection) -> list[Step]:
     return steps
 
 
+def _cdp_section_to_steps(section: ToonSection) -> list[Step]:
+    steps: list[Step] = []
+    for row in section.rows:
+        wait_ms = row.get("wait_ms")
+        method = row.get("method") or row.get("cmd") or ""
+        params = row.get("params") or row.get("args")
+        if isinstance(params, (dict, list)):
+            val = json.dumps(params)
+        elif params not in (None, "-"):
+            val = str(params)
+        else:
+            val = None
+        steps.append(GuiStep(
+            action="cdp",
+            selector=str(method) if method else None,
+            value=val,
+            wait_ms=int(wait_ms) if isinstance(wait_ms, int) else None,
+        ))
+    return steps
+
+
 def _encoder_section_to_steps(section: ToonSection) -> list[Step]:
     steps: list[Step] = []
     for row in section.rows:
@@ -347,6 +368,7 @@ _SECTION_TRANSLATORS = {
     "API": _api_section_to_steps,
     "NAVIGATE": _navigate_section_to_steps,
     "GUI": _gui_section_to_steps,
+    "CDP": _cdp_section_to_steps,
     "ENCODER": _encoder_section_to_steps,
     "ASSERT": _assert_section_to_steps,
     "SHELL": _shell_section_to_steps,

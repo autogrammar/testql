@@ -696,6 +696,31 @@ def _expand_generic(section: ToonSection, lines: list[OqlLine], line_num: int) -
     return line_num
 
 
+def _expand_cdp(section: ToonSection, lines: list[OqlLine], line_num: int) -> int:
+    """Expand CDP section → GUI_CDP commands."""
+    for row in section.rows:
+        method = str(row.get("method") or row.get("action") or "").strip()
+        if not method:
+            continue
+        params = row.get("params") or row.get("args") or row.get("payload") or {}
+        if isinstance(params, (dict, list)):
+            params_str = json.dumps(params)
+        else:
+            params_str = str(params).strip()
+            if params_str == "-":
+                params_str = "{}"
+        target = str(row.get("target") or "").strip()
+        quoted_method = f'"{method}"'
+        quoted_params = f"'{params_str}'"
+        args = f"{quoted_method} {quoted_params}"
+        if target and target != "-":
+            args += f" -> {target}"
+        raw = f"GUI_CDP {args}"
+        lines.append(OqlLine(number=line_num, command="GUI_CDP", args=args, raw=raw))
+        line_num += 1
+    return line_num
+
+
 _SECTION_EXPANDERS = {
     'CONFIG': _expand_config,
     'ENVIRONMENT': _expand_environment,
@@ -719,6 +744,7 @@ _SECTION_EXPANDERS = {
     'VALIDATE': _expand_validate,
     'SHELL': _expand_shell,
     'MODBUS': _expand_modbus,
+    'CDP': _expand_cdp,
 }
 
 

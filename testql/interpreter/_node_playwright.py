@@ -78,12 +78,41 @@ def find_node_playwright(start: Path | None = None) -> Path | None:
     return None
 
 
+def find_playwright_browsers_dir(start: Path | None = None) -> Path | None:
+    """Find a project-local .playwright-browsers directory."""
+    explicit = os.environ.get("PLAYWRIGHT_BROWSERS_PATH")
+    if explicit:
+        p = Path(explicit).expanduser().resolve()
+        if p.is_dir():
+            return p
+    for root in _search_roots(start):
+        for candidate in (
+            root / ".playwright-browsers",
+            root / "node_modules" / ".playwright-browsers",
+        ):
+            if candidate.is_dir():
+                return candidate.resolve()
+    return None
+
+
 def find_browser_executable() -> str | None:
     """Return an explicitly configured or common system Chromium executable."""
     for env_name in _BROWSER_ENV_VARS:
         value = os.environ.get(env_name)
         if value and os.access(Path(value).expanduser(), os.X_OK):
             return str(Path(value).expanduser().resolve())
+    # Check project-local or env-configured .playwright-browsers directory
+    browsers_dir = find_playwright_browsers_dir()
+    if browsers_dir and browsers_dir.is_dir():
+        for pattern in (
+            "**/chrome-linux/headless_shell",
+            "**/chrome-linux/chrome",
+            "**/chrome.exe",
+        ):
+            for match in browsers_dir.glob(pattern):
+                if os.access(match, os.X_OK):
+                    return str(match.resolve())
+
     for command in _BROWSER_COMMANDS:
         value = shutil.which(command)
         if value:
@@ -91,6 +120,7 @@ def find_browser_executable() -> str | None:
     for value in _BROWSER_PATHS:
         if os.access(value, os.X_OK):
             return value
+
     return None
 
 
