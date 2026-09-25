@@ -16,6 +16,9 @@ _URL_PARAM_ACTIONS = frozenset({"assert_url_param", "url_param"})
 _VALUE_ACTIONS = frozenset({"assert_value", "value"})
 _EVAL_ACTIONS = frozenset({"eval", "js", "javascript"})
 _COOKIE_ACTIONS = frozenset({"assert_cookie", "cookie"})
+_PRESS_ACTIONS = frozenset({"press", "key", "keydown", "keypress"})
+_HOVER_ACTIONS = frozenset({"hover", "mouseover"})
+_MOUSE_ACTIONS = frozenset({"mouse", "mousemove"})
 _STOP_ACTIONS = frozenset({"stop", "close"})
 _SKIP_WAIT = frozenset({None, "-", "", 0, "0"})
 
@@ -76,6 +79,12 @@ def _gui_action_group(action: str) -> str:
         return "eval"
     if action in _COOKIE_ACTIONS:
         return "cookie"
+    if action in _PRESS_ACTIONS:
+        return "press"
+    if action in _HOVER_ACTIONS:
+        return "hover"
+    if action in _MOUSE_ACTIONS:
+        return "mouse"
     if action in _STOP_ACTIONS:
         return "stop"
     if action:
@@ -321,6 +330,14 @@ def expand_gui_row(
             line_num=line_num,
             append=append,
         )
+    elif group == "press":
+        key_target = value or selector
+        line_num = append(lines, line_num, "GUI_PRESS", quote_gui_token(str(key_target)))
+    elif group == "hover":
+        line_num = append(lines, line_num, "GUI_HOVER", quote_gui_token(selector))
+    elif group == "mouse":
+        mouse_arg = f"{selector} {value}".strip() if value else selector
+        line_num = append(lines, line_num, "GUI_MOUSE", mouse_arg)
     elif group == "stop":
         line_num = append(lines, line_num, "GUI_STOP", "")
         session_open = False

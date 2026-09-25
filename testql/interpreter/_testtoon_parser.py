@@ -726,6 +726,41 @@ def _expand_cdp(section: ToonSection, lines: list[OqlLine], line_num: int) -> in
     return line_num
 
 
+def _expand_keyboard(section: ToonSection, lines: list[OqlLine], line_num: int) -> int:
+    """Expand KEYBOARD[N]{key, wait_ms} section → GUI_PRESS + optional WAIT."""
+    for row in section.rows:
+        key = str(row.get('key') or row.get('value') or '').strip()
+        while len(key) >= 2 and ((key[0] == '"' and key[-1] == '"') or (key[0] == "'" and key[-1] == "'")):
+            key = key[1:-1].strip()
+        wait_ms = row.get('wait_ms')
+        raw = f'GUI_PRESS "{key}"'
+        lines.append(OqlLine(number=line_num, command='GUI_PRESS', args=f'"{key}"', raw=raw))
+        line_num += 1
+        if wait_ms is not None:
+            raw_w = f'WAIT {wait_ms}'
+            lines.append(OqlLine(number=line_num, command='WAIT', args=str(wait_ms), raw=raw_w))
+            line_num += 1
+    return line_num
+
+
+def _expand_scanner(section: ToonSection, lines: list[OqlLine], line_num: int) -> int:
+    """Expand SCANNER[N]{code, type, wait_ms} section → SCANNER_SCAN + optional WAIT."""
+    for row in section.rows:
+        code = str(row.get('code') or row.get('value') or '').strip()
+        while len(code) >= 2 and ((code[0] == '"' and code[-1] == '"') or (code[0] == "'" and code[-1] == "'")):
+            code = code[1:-1].strip()
+        code_type = str(row.get('type') or 'barcode').strip()
+        wait_ms = row.get('wait_ms')
+        raw = f'SCANNER_SCAN "{code}" {code_type}'
+        lines.append(OqlLine(number=line_num, command='SCANNER_SCAN', args=f'"{code}" {code_type}', raw=raw))
+        line_num += 1
+        if wait_ms is not None:
+            raw_w = f'WAIT {wait_ms}'
+            lines.append(OqlLine(number=line_num, command='WAIT', args=str(wait_ms), raw=raw_w))
+            line_num += 1
+    return line_num
+
+
 _SECTION_EXPANDERS = {
     'CONFIG': _expand_config,
     'ENVIRONMENT': _expand_environment,
@@ -750,6 +785,9 @@ _SECTION_EXPANDERS = {
     'SHELL': _expand_shell,
     'MODBUS': _expand_modbus,
     'CDP': _expand_cdp,
+    'KEYBOARD': _expand_keyboard,
+    'KEY': _expand_keyboard,
+    'SCANNER': _expand_scanner,
 }
 
 

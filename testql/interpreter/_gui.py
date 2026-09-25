@@ -623,6 +623,184 @@ class GuiMixin:
                 message=str(e),
             ))
 
+    def _cmd_gui_press(self, args: str, line: OqlLine) -> None:
+        """GUI_PRESS "key" — Press a keyboard key or key combo.
+
+        Examples:
+            GUI_PRESS "ArrowDown"
+            GUI_PRESS "Enter"
+            GUI_PRESS "Control+e"
+            GUI_PRESS "Escape"
+        """
+        key = args.strip()
+        while len(key) >= 2 and ((key[0] == '"' and key[-1] == '"') or (key[0] == "'" and key[-1] == "'")):
+            key = key[1:-1].strip()
+        if not key:
+            self.out.fail(f"L{line.number}: GUI_PRESS requires key")
+            self.results.append(StepResult(
+                name="GUI_PRESS",
+                status=StepStatus.ERROR,
+                message="Key required",
+            ))
+            return
+
+        if self.dry_run:
+            self.out.step("⌨️", f'GUI_PRESS "{key}" (dry-run)')
+            self.results.append(StepResult(
+                name=f'GUI_PRESS "{key}"', status=StepStatus.PASSED
+            ))
+            return
+
+        if not self._gui_page:
+            self.out.fail("GUI_PRESS: No active GUI session. Call GUI_START first")
+            self.results.append(StepResult(
+                name=f'GUI_PRESS "{key}"',
+                status=StepStatus.ERROR,
+                message="No active GUI session",
+            ))
+            return
+
+        try:
+            if hasattr(self._gui_page, "keyboard") and hasattr(self._gui_page.keyboard, "press"):
+                self._gui_page.keyboard.press(key)
+            elif hasattr(self._gui_page, "send_keys"):
+                self._gui_page.send_keys(key)
+            else:
+                self._gui_page.evaluate(f"""
+                    window.dispatchEvent(new KeyboardEvent('keydown', {{key: '{key}', code: '{key}', bubbles: true}}));
+                    window.dispatchEvent(new KeyboardEvent('keyup', {{key: '{key}', code: '{key}', bubbles: true}}));
+                """)
+
+            self.out.step("⌨️", f'GUI_PRESS "{key}"')
+            self.results.append(StepResult(
+                name=f'GUI_PRESS "{key}"', status=StepStatus.PASSED
+            ))
+        except Exception as e:
+            self.out.fail(f'GUI_PRESS "{key}" error: {e}')
+            self.results.append(StepResult(
+                name=f'GUI_PRESS "{key}"',
+                status=StepStatus.ERROR,
+                message=str(e),
+            ))
+
+    def _cmd_gui_hover(self, args: str, line: OqlLine) -> None:
+        """GUI_HOVER "selector" — Hover over an element.
+
+        Examples:
+            GUI_HOVER "button.menu-item"
+            GUI_HOVER "#sidebar"
+        """
+        selector = args.strip()
+        while len(selector) >= 2 and ((selector[0] == '"' and selector[-1] == '"') or (selector[0] == "'" and selector[-1] == "'")):
+            selector = selector[1:-1].strip()
+        if not selector:
+            self.out.fail(f"L{line.number}: GUI_HOVER requires selector")
+            self.results.append(StepResult(
+                name="GUI_HOVER",
+                status=StepStatus.ERROR,
+                message="Selector required",
+            ))
+            return
+
+        if self.dry_run:
+            self.out.step("🖱️", f'GUI_HOVER "{selector}" (dry-run)')
+            self.results.append(StepResult(
+                name=f'GUI_HOVER "{selector}"', status=StepStatus.PASSED
+            ))
+            return
+
+        if not self._gui_page:
+            self.out.fail("GUI_HOVER: No active GUI session. Call GUI_START first")
+            self.results.append(StepResult(
+                name=f'GUI_HOVER "{selector}"',
+                status=StepStatus.ERROR,
+                message="No active GUI session",
+            ))
+            return
+
+        resolved_selector, element = self._find_element_with_logging(selector, "hover")
+        if resolved_selector is None:
+            self.out.fail(f'GUI_HOVER "{selector}": Element not found')
+            self.results.append(StepResult(
+                name=f'GUI_HOVER "{selector}"',
+                status=StepStatus.FAILED,
+                message="Element not found after trying fallback selectors",
+            ))
+            return
+
+        try:
+            if hasattr(element, "hover"):
+                element.hover()
+            elif hasattr(self._gui_page, "hover"):
+                self._gui_page.hover(resolved_selector)
+            self.out.step("🖱️", f'GUI_HOVER "{resolved_selector}"')
+            self.results.append(StepResult(
+                name=f'GUI_HOVER "{selector}"', status=StepStatus.PASSED
+            ))
+        except Exception as e:
+            self.out.fail(f'GUI_HOVER "{resolved_selector}" error: {e}')
+            self.results.append(StepResult(
+                name=f'GUI_HOVER "{selector}"',
+                status=StepStatus.ERROR,
+                message=str(e),
+            ))
+
+    def _cmd_gui_mouse(self, args: str, line: OqlLine) -> None:
+        """GUI_MOUSE action [x y] — Control mouse pointer.
+
+        Examples:
+            GUI_MOUSE move 100 200
+            GUI_MOUSE click 100 200
+            GUI_MOUSE down
+            GUI_MOUSE up
+        """
+        parts = shlex.split(args.strip())
+        if not parts:
+            self.out.fail(f"L{line.number}: GUI_MOUSE requires action")
+            self.results.append(StepResult(
+                name="GUI_MOUSE",
+                status=StepStatus.ERROR,
+                message="Action required",
+            ))
+            return
+        action = parts[0].lower()
+
+        if self.dry_run:
+            self.out.step("🖱️", f'GUI_MOUSE {args} (dry-run)')
+            self.results.append(StepResult(name=f"GUI_MOUSE {args}", status=StepStatus.PASSED))
+            return
+
+        if not self._gui_page:
+            self.out.fail("GUI_MOUSE: No active GUI session")
+            self.results.append(StepResult(name=f"GUI_MOUSE {args}", status=StepStatus.ERROR, message="No active GUI session"))
+            return
+
+        try:
+            mouse = getattr(self._gui_page, "mouse", None)
+            if not mouse:
+                raise RuntimeError("Mouse control not supported by current GUI driver")
+            if action == "move" and len(parts) >= 3:
+                mouse.move(float(parts[1]), float(parts[2]))
+            elif action == "click":
+                if len(parts) >= 3:
+                    mouse.click(float(parts[1]), float(parts[2]))
+                else:
+                    mouse.click()
+            elif action == "down":
+                mouse.down()
+            elif action == "up":
+                mouse.up()
+            elif action == "dblclick" and len(parts) >= 3:
+                mouse.dblclick(float(parts[1]), float(parts[2]))
+            else:
+                raise ValueError(f"Unknown mouse action or missing coordinates: {args}")
+
+            self.out.step("🖱️", f'GUI_MOUSE {args}')
+            self.results.append(StepResult(name=f"GUI_MOUSE {args}", status=StepStatus.PASSED))
+        except Exception as e:
+            self.out.fail(f'GUI_MOUSE {args} error: {e}')
+            self.results.append(StepResult(name=f"GUI_MOUSE {args}", status=StepStatus.ERROR, message=str(e)))
+
     def _cmd_gui_select(self, args: str, line: OqlLine) -> None:
         """GUI_SELECT "selector" "value" — select an option by value, then by label."""
         try:
@@ -1652,3 +1830,20 @@ class GuiMixin:
     def _cmd_screenshot(self, args: str, line: OqlLine) -> None:
         """Alias for GUI_CAPTURE."""
         self._cmd_gui_capture(args, line)
+
+    def _cmd_press(self, args: str, line: OqlLine) -> None:
+        """Alias for GUI_PRESS."""
+        self._cmd_gui_press(args, line)
+
+    def _cmd_key(self, args: str, line: OqlLine) -> None:
+        """Alias for GUI_PRESS."""
+        self._cmd_gui_press(args, line)
+
+    def _cmd_hover(self, args: str, line: OqlLine) -> None:
+        """Alias for GUI_HOVER."""
+        self._cmd_gui_hover(args, line)
+
+    def _cmd_mouse(self, args: str, line: OqlLine) -> None:
+        """Alias for GUI_MOUSE."""
+        self._cmd_gui_mouse(args, line)
+
