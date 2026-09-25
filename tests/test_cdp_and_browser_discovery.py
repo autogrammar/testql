@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import urllib.error
 from unittest.mock import MagicMock, patch
 import pytest
 
@@ -134,3 +135,45 @@ def test_encoder_fallback_to_gui_page():
         assert mock_page.evaluate.called
         assert interp.vars.get("_encoder_status") == {"ok": True, "active": 2}
         assert interp.results[-1].status == StepStatus.PASSED
+
+
+def test_encoder_fallback_on_http_404():
+    interp = OqlInterpreter(api_url="http://localhost:8100", quiet=True, dry_run=False)
+    mock_page = MagicMock()
+    mock_page.evaluate.return_value = {"ok": True, "active": 1}
+    interp._gui_page = mock_page
+
+    err = urllib.error.HTTPError("http://localhost:8105/encoder/activate", 404, "Not Found", {}, None)
+    with patch("urllib.request.urlopen", side_effect=err):
+        line = OqlLine(1, "ENCODER_ON", "", "ENCODER_ON")
+        interp._cmd_encoder_on("", line)
+
+        assert mock_page.evaluate.called
+        assert interp.vars.get("_encoder_status") == {"ok": True, "active": 1}
+        assert interp.results[-1].status == StepStatus.PASSED
+
+
+def test_cmd_gui_cdp_nested_quotes_unwrapping():
+    interp = OqlInterpreter(api_url="http://localhost:8100", quiet=True, dry_run=False)
+    mock_session = MagicMock()
+    mock_session.send.return_value = {"result": {"value": 100}}
+
+    mock_context = MagicMock()
+    mock_context.new_cdp_session.return_value = mock_session
+
+    mock_page = MagicMock()
+    mock_page.context = mock_context
+    interp._gui_page = mock_page
+
+    # Double-wrapped nested quotes around JSON params
+    args = '\'Runtime.evaluate\' \'\'{"expression": "50 * 2"}\'\' -> cdp_res'
+    line = OqlLine(1, "GUI_CDP", args, f"GUI_CDP {args}")
+
+    interp._cmd_gui_cdp(args, line)
+
+    mock_session.send.assert_called_once_with(
+        "Runtime.evaluate", {"expression": "50 * 2"}
+    )
+    assert interp.vars.get("cdp_res") == {"result": {"value": 100}}
+    assert interp.results[-1].status == StepStatus.PASSED
+

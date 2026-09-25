@@ -721,7 +721,7 @@ class GuiMixin:
         tokens = parts_str.split(None, 1)
         method = tokens[0].strip("\"'")
         params_raw = tokens[1].strip() if len(tokens) > 1 else ""
-        if (params_raw.startswith("'") and params_raw.endswith("'")) or (
+        while (params_raw.startswith("'") and params_raw.endswith("'")) or (
             params_raw.startswith('"') and params_raw.endswith('"')
         ):
             params_raw = params_raw[1:-1].strip()

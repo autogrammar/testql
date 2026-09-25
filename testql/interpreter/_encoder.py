@@ -88,7 +88,18 @@ class EncoderMixin:
                 except Exception as fallback_error:
                     self.out.fail(f"{label} => {fallback_error}")
                     self.results.append(StepResult(name=label, status=StepStatus.FAILED, message=str(fallback_error)))
-                    return
+            gui_page = getattr(self, "_gui_page", None)
+            if gui_page:
+                try:
+                    js_code = self._encoder_to_js(endpoint, body)
+                    if js_code:
+                        res = gui_page.evaluate(js_code)
+                        self.vars.set("_encoder_status", res)
+                        self.out.step("🎛️", f"{label} (GUI) => {json.dumps(res or {})[:120]}")
+                        self.results.append(StepResult(name=label, status=StepStatus.PASSED, details=res))
+                        return
+                except Exception:
+                    pass
             self.out.fail(f"{label} => {e}")
             self.results.append(StepResult(name=label, status=StepStatus.FAILED, message=str(e)))
         except Exception as e:
