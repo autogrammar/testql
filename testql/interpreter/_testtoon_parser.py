@@ -711,7 +711,12 @@ def _expand_cdp(section: ToonSection, lines: list[OqlLine], line_num: int) -> in
                 params_str = "{}"
         target = str(row.get("target") or "").strip()
         quoted_method = f'"{method}"'
-        quoted_params = f"'{params_str}'"
+        if (params_str.startswith("'") and params_str.endswith("'")) or (
+            params_str.startswith('"') and params_str.endswith('"')
+        ):
+            quoted_params = params_str
+        else:
+            quoted_params = f"'{params_str}'"
         args = f"{quoted_method} {quoted_params}"
         if target and target != "-":
             args += f" -> {target}"
