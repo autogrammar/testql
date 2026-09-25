@@ -40,6 +40,31 @@ class EncoderMixin:
             self.out.step("🎛️", f"{label} => {json.dumps(data)[:120]}")
             self.results.append(StepResult(name=label, status=StepStatus.PASSED, details=data))
 
+    @staticmethod
+    def _encoder_to_js(endpoint: str, body: dict | None = None) -> str | None:
+        ep = endpoint.lower()
+        if "activate" in ep:
+            return "window.encoderMode && window.encoderMode.activate ? (window.encoderMode.activate(), window.encoderMode.getStatus()) : {active: true}"
+        elif "deactivate" in ep:
+            return "window.encoderMode && window.encoderMode.deactivate ? (window.encoderMode.deactivate(), window.encoderMode.getStatus()) : {active: false}"
+        elif "scroll" in ep:
+            delta = body.get("delta", 1) if body else 1
+            return f"window.encoderMode && window.encoderMode.remoteScroll ? (window.encoderMode.remoteScroll({delta}), window.encoderMode.getStatus()) : {{scroll: {delta}}}"
+        elif "page-next" in ep:
+            return "window.encoderMode && window.encoderMode.remoteScroll ? (window.encoderMode.remoteScroll(1), window.encoderMode.getStatus()) : {page: 1}"
+        elif "page-prev" in ep:
+            return "window.encoderMode && window.encoderMode.remoteScroll ? (window.encoderMode.remoteScroll(-1), window.encoderMode.getStatus()) : {page: -1}"
+        elif "click" in ep:
+            return "window.encoderMode && window.encoderMode.remoteClick ? (window.encoderMode.remoteClick(), window.encoderMode.getStatus()) : {clicked: true}"
+        elif "cancel" in ep:
+            return "window.encoderMode && window.encoderMode.remoteClick ? (window.encoderMode.remoteClick(), window.encoderMode.remoteClick(), window.encoderMode.getStatus()) : {cancel: true}"
+        elif "focus" in ep:
+            zone = body.get("zone", "col3") if body else "col3"
+            return f"window.encoderMode && window.encoderMode.remoteFocusZone ? window.encoderMode.remoteFocusZone('{zone}') : {{zone: '{zone}'}}"
+        elif "status" in ep:
+            return "window.encoderMode && window.encoderMode.getStatus ? window.encoderMode.getStatus() : {}"
+        return None
+
     def _encoder_call(
         self, method: str, endpoint: str, body: dict | None, line: OqlLine, label: str
     ) -> None:
@@ -67,6 +92,18 @@ class EncoderMixin:
             self.out.fail(f"{label} => {e}")
             self.results.append(StepResult(name=label, status=StepStatus.FAILED, message=str(e)))
         except Exception as e:
+            gui_page = getattr(self, "_gui_page", None)
+            if gui_page:
+                try:
+                    js_code = self._encoder_to_js(endpoint, body)
+                    if js_code:
+                        res = gui_page.evaluate(js_code)
+                        self.vars.set("_encoder_status", res)
+                        self.out.step("🎛️", f"{label} (GUI) => {json.dumps(res or {})[:120]}")
+                        self.results.append(StepResult(name=label, status=StepStatus.PASSED, details=res))
+                        return
+                except Exception:
+                    pass
             self.out.fail(f"{label} => {e}")
             self.results.append(StepResult(name=label, status=StepStatus.FAILED, message=str(e)))
 

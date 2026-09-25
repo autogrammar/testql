@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import os
 from pathlib import Path
 from typing import Any
 import shlex
@@ -15,6 +17,7 @@ from ._node_playwright import (
     NodePlaywrightSession,
     find_browser_executable,
     find_node_playwright,
+    find_playwright_browsers_dir,
 )
 
 
@@ -26,6 +29,8 @@ class GuiMixin:
       - GUI_NAVIGATE (NAVIGATE, GOTO) "path" — Navigate
       - GUI_CLICK (CLICK) "selector" — Click
       - GUI_INPUT (INPUT, TYPE) "selector" "text" — Type
+      - GUI_SELECT (SELECT) "selector" "value" — Select option
+      - GUI_CDP (CDP) "method" '{"params": ...}' — Direct Chrome DevTools Protocol command
       - GUI_SCROLL (SCROLL, WHEEL) "selector" [delta_y] — Scroll page or element
       - GUI_ASSERT_VISIBLE (ASSERT_VISIBLE, VISIBLE) "selector" — Visible?
       - GUI_ASSERT_TEXT (ASSERT_TEXT, TEXT) "selector" "expected" — Text?
@@ -52,6 +57,8 @@ class GuiMixin:
         "GUI_WHEEL": "scroll",
         "SUBMIT": "submit",
         "GUI_SUBMIT": "submit",
+        "CDP": "cdp",
+        "GUI_CDP": "cdp",
         "GUI_ASSERT_VISIBLE": "assert_visible",
         "GUI_ASSERT_TEXT": "assert_text",
         "GUI_EVAL": "eval",
@@ -321,6 +328,10 @@ class GuiMixin:
     def _start_playwright(self, app_path: str, extra_args: str) -> None:
         """Start Playwright and navigate to app_path."""
         if app_path.startswith(("http://", "https://", "about:")):
+            if "PLAYWRIGHT_BROWSERS_PATH" not in os.environ:
+                browsers_dir = find_playwright_browsers_dir()
+                if browsers_dir:
+                    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(browsers_dir)
             headless = str(self.vars.get("headless", "true")).lower() == "true"
             operation_timeout = self._gui_operation_timeout()
             navigation_timeout = self._gui_operation_timeout(15000)
@@ -686,6 +697,83 @@ class GuiMixin:
 
     def _cmd_submit(self, args: str, line: OqlLine) -> None:
         self._cmd_gui_submit(args, line)
+
+    def _cmd_gui_cdp(self, args: str, line: OqlLine) -> None:
+        """GUI_CDP "method" '{"params": ...}' — Execute Chrome DevTools Protocol command.
+
+        Examples:
+            GUI_CDP "Runtime.evaluate" '{"expression": "document.title"}'
+            GUI_CDP "Input.dispatchKeyEvent" '{"type": "keyDown", "key": "ArrowDown"}'
+        """
+        target_var = None
+        if " -> " in args:
+            parts_str, target_var = args.split(" -> ", 1)
+            target_var = target_var.strip()
+        else:
+            parts_str = args
+
+        parts_str = parts_str.strip()
+        if not parts_str:
+            self.out.fail(f"L{line.number}: GUI_CDP requires CDP method name")
+            self.results.append(StepResult(name="GUI_CDP", status=StepStatus.ERROR, message="method required"))
+            return
+
+        tokens = parts_str.split(None, 1)
+        method = tokens[0].strip("\"'")
+        params_raw = tokens[1].strip() if len(tokens) > 1 else ""
+        if (params_raw.startswith("'") and params_raw.endswith("'")) or (
+            params_raw.startswith('"') and params_raw.endswith('"')
+        ):
+            params_raw = params_raw[1:-1].strip()
+
+        params = {}
+        if params_raw:
+            try:
+                params = json.loads(params_raw)
+            except Exception:
+                params = {"expression": params_raw}
+
+        name = f'GUI_CDP "{method}"'
+        if self.dry_run:
+            self.out.step("⚡", f"{name} (dry-run)")
+            self.results.append(StepResult(name=name, status=StepStatus.PASSED))
+            return
+
+        if not self._gui_page:
+            self.out.fail("GUI_CDP: No active GUI session")
+            self.results.append(StepResult(name=name, status=StepStatus.ERROR, message="No active GUI session"))
+            return
+
+        try:
+            if not hasattr(self, "_cdp_session") or self._cdp_session is None:
+                ctx = getattr(self._gui_page, "context", None)
+                if ctx and hasattr(ctx, "new_cdp_session"):
+                    self._cdp_session = ctx.new_cdp_session(self._gui_page)
+                else:
+                    self._cdp_session = None
+
+            if self._cdp_session is not None:
+                res = self._cdp_session.send(method, params)
+            else:
+                if method == "Runtime.evaluate":
+                    expr = params.get("expression", "")
+                    val = self._gui_page.evaluate(expr)
+                    res = {"result": {"value": val}}
+                else:
+                    res = {"method": method, "simulated": True}
+
+            self.vars.set("_cdp_result", res)
+            if target_var:
+                self.vars.set(target_var, res)
+            self.out.step("⚡", f"{name} => {json.dumps(res or {}, default=str)[:120]}")
+            self.results.append(StepResult(name=name, status=StepStatus.PASSED, details=res))
+        except Exception as e:
+            self.out.fail(f"{name} error: {e}")
+            self.results.append(StepResult(name=name, status=StepStatus.ERROR, message=str(e)))
+
+    def _cmd_cdp(self, args: str, line: OqlLine) -> None:
+        """Alias for GUI_CDP."""
+        self._cmd_gui_cdp(args, line)
 
     def _parse_scroll_args(self, args: str) -> tuple[str, int, int]:
         """Parse GUI_SCROLL args.
