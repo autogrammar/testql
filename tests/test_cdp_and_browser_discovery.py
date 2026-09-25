@@ -40,7 +40,8 @@ def test_find_browser_executable_in_playwright_browsers(tmp_path, monkeypatch):
     chrome_exe.write_text("#!/bin/sh\n", encoding="utf-8")
     chrome_exe.chmod(0o755)
 
-    monkeypatch.delenv("TESTQL_BROWSER_EXECUTABLE", raising=False)
+    for env_name in node_playwright._BROWSER_ENV_VARS:
+        monkeypatch.delenv(env_name, raising=False)
     monkeypatch.setenv("PLAYWRIGHT_BROWSERS_PATH", str(browsers_dir))
 
     found = node_playwright.find_browser_executable()
