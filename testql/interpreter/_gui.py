@@ -74,6 +74,7 @@ class GuiMixin:
     _gui_engine_unavailable: bool = False  # set when the browser engine is not installed
     _gui_playwright_backend: str | None = None  # "python" or "node"
     _gui_node_playwright_path: Path | None = None
+    _gui_is_cdp_attached: bool = False
 
     def _gui_operation_timeout(self, default_ms: int = 5000) -> int:
         """Return one bounded timeout for a single browser operation.
@@ -282,16 +283,23 @@ class GuiMixin:
             GUI_START "/path/to/electron-app"
         """
         parts = args.strip().split(None, 1)
+        cdp_url = self.vars.get("cdp_url") or self.vars.get("browser.cdp_url")
         if not parts:
-            self.out.fail(f"L{line.number}: GUI_START requires path or URL")
-            return
-
-        app_path = parts[0].strip('"\'')
-        extra_args = parts[1] if len(parts) > 1 else ""
+            if cdp_url:
+                app_path = "current"
+                extra_args = ""
+            else:
+                self.out.fail(f"L{line.number}: GUI_START requires path or URL")
+                return
+        else:
+            app_path = parts[0].strip('"\'')
+            extra_args = parts[1] if len(parts) > 1 else ""
 
         if self.dry_run:
             user_data_dir = self.vars.get("browser.user_data_dir")
             suffix = f" (user_data_dir={user_data_dir})" if user_data_dir else ""
+            if cdp_url:
+                suffix += f" (cdp_url={cdp_url})"
             self.out.step("🖥️", f'GUI_START "{app_path[:50]}"{suffix} (dry-run)')
             self.results.append(StepResult(
                 name=f'GUI_START "{app_path[:40]}"', status=StepStatus.PASSED
@@ -327,7 +335,12 @@ class GuiMixin:
 
     def _start_playwright(self, app_path: str, extra_args: str) -> None:
         """Start Playwright and navigate to app_path."""
-        if app_path.startswith(("http://", "https://", "about:")):
+        cdp_url = self.vars.get("cdp_url") or self.vars.get("browser.cdp_url")
+        if (
+            app_path.startswith(("http://", "https://", "about:"))
+            or cdp_url
+            or app_path in ("current", ".")
+        ):
             if "PLAYWRIGHT_BROWSERS_PATH" not in os.environ:
                 browsers_dir = find_playwright_browsers_dir()
                 if browsers_dir:
@@ -335,6 +348,49 @@ class GuiMixin:
             headless = str(self.vars.get("headless", "true")).lower() == "true"
             operation_timeout = self._gui_operation_timeout()
             navigation_timeout = self._gui_operation_timeout(15000)
+
+            if cdp_url:
+                if self._gui_playwright_backend == "node":
+                    raise RuntimeError(
+                        "cdp_url is not supported with the Node Playwright backend; "
+                        "install the Python playwright package to attach to remote CDP browsers."
+                    )
+                from playwright.sync_api import sync_playwright
+
+                p = sync_playwright().start()
+                browser = p.chromium.connect_over_cdp(str(cdp_url))
+                self._gui_is_cdp_attached = True
+
+                context = browser.contexts[0] if browser.contexts else browser.new_context()
+                page = None
+                if context.pages:
+                    if app_path and app_path not in ("current", ".", "about:blank"):
+                        for p_cand in context.pages:
+                            if self._same_url_without_hash(p_cand.url, app_path):
+                                page = p_cand
+                                break
+                    if page is None:
+                        page = context.pages[0]
+                else:
+                    page = context.new_page()
+
+                page.set_default_timeout(operation_timeout)
+                page.set_default_navigation_timeout(navigation_timeout)
+
+                if app_path and app_path not in ("current", ".", "about:blank") and not app_path.startswith("ws://"):
+                    if not self._same_url_without_hash(page.url, app_path):
+                        page.goto(app_path, timeout=navigation_timeout)
+
+                self._gui_page = page
+                self._gui_app = (p, browser)
+                self.out.step(
+                    "🖥️",
+                    f"Playwright: Attached to CDP {cdp_url} (page: {page.url or app_path})",
+                )
+                self.results.append(StepResult(
+                    name=f'GUI_START "{app_path[:40]}"', status=StepStatus.PASSED
+                ))
+                return
             executable_path = find_browser_executable()
             user_data_dir = self.vars.get("browser.user_data_dir")
             if user_data_dir:
@@ -1725,8 +1781,12 @@ class GuiMixin:
         """Close an active browser without recording an extra TestQL step."""
         app = self._gui_app
         driver = self._gui_driver
+        is_cdp = getattr(self, "_gui_is_cdp_attached", False)
         self._gui_app = None
         self._gui_page = None
+        if hasattr(self, "_cdp_session"):
+            self._cdp_session = None
+        self._gui_is_cdp_attached = False
         if not app:
             return
         if driver == "playwright":
@@ -1735,7 +1795,8 @@ class GuiMixin:
             else:
                 playwright, browser = app
                 try:
-                    browser.close()
+                    if not is_cdp:
+                        browser.close()
                 finally:
                     playwright.stop()
         elif driver == "selenium":
