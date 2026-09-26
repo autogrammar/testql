@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import http.cookiejar
 import json
+import os
 import ssl
 import time
 import urllib.error
 import urllib.request
 from typing import Any
+from urllib.parse import urlsplit
 
 from testql.base import StepResult, StepStatus
 from testql.http_response import parse_http_body
@@ -76,11 +79,43 @@ class ApiRunnerMixin:
     retry_backoff_ms: int = 1000
     retry_status_codes: set[int] = {429, 500, 502, 503, 504}
 
+    _cookie_jar: http.cookiejar.CookieJar | None = None
+
     def _http_timeout_s(self) -> float:
         configured = getattr(self, "timeout_ms", None)
         if configured:
             return max(1.0, float(configured) / 1000.0)
         return 8.0
+
+    def _get_cookie_jar(self) -> http.cookiejar.CookieJar:
+        if getattr(self, "_cookie_jar", None) is None:
+            self._cookie_jar = http.cookiejar.CookieJar()
+        return self._cookie_jar
+
+    def _should_use_insecure_ssl(self, url: str) -> bool:
+        if os.getenv("TESTQL_INSECURE", "").strip() in ("1", "true", "yes"):
+            return True
+        config_insecure = getattr(self, "insecure", None)
+        if config_insecure is None and hasattr(self, "config"):
+            config_insecure = (
+                self.config.get("insecure")
+                if isinstance(self.config, dict)
+                else getattr(self.config, "insecure", None)
+            )
+        if config_insecure is True:
+            return True
+        host = (urlsplit(url).hostname or "").lower()
+        if host.endswith(".local") or host in ("localhost", "127.0.0.1", "::1"):
+            return True
+        return False
+
+    def _get_opener(self, url: str) -> urllib.request.OpenerDirector:
+        jar = self._get_cookie_jar()
+        handlers: list[urllib.request.BaseHandler] = [urllib.request.HTTPCookieProcessor(jar)]
+        if self._should_use_insecure_ssl(url):
+            ctx = ssl._create_unverified_context()
+            handlers.append(urllib.request.HTTPSHandler(context=ctx))
+        return urllib.request.build_opener(*handlers)
 
     # ── Internal helpers ──────────────────────────────────────────────────────
 
@@ -88,16 +123,32 @@ class ApiRunnerMixin:
         self, method: str, url: str, body_data: dict | None
     ) -> tuple[int, dict, dict, dict]:
         """Return status, compatibility payload, headers and body evidence."""
-        req_body = json.dumps(body_data).encode("utf-8") if body_data else None
+        req_body = json.dumps(body_data).encode("utf-8") if body_data is not None else None
+        headers = {"Content-Type": "application/json", "Accept": "*/*"}
+        csrf = None
+        if hasattr(self, "vars") and hasattr(self.vars, "get"):
+            csrf = self.vars.get("csrf") or self.vars.get("_csrf")
+        if csrf and "X-CSRF-Token" not in headers:
+            headers["X-CSRF-Token"] = str(csrf)
+
         req = urllib.request.Request(
             url, data=req_body, method=method,
-            headers={"Content-Type": "application/json", "Accept": "*/*"},
+            headers=headers,
         )
-        with urllib.request.urlopen(req, timeout=self._http_timeout_s()) as resp:
+        opener = self._get_opener(url)
+        with opener.open(req, timeout=self._http_timeout_s()) as resp:
             status = resp.status
-            headers = dict(resp.headers)
-            parsed = parse_http_body(resp.read(), headers)
-            return status, parsed.data, headers, parsed.evidence
+            resp_headers = dict(resp.headers)
+            parsed = parse_http_body(resp.read(), resp_headers)
+            if (
+                isinstance(parsed.data, dict)
+                and "csrf" in parsed.data
+                and hasattr(self, "vars")
+                and hasattr(self.vars, "get")
+                and not self.vars.get("csrf")
+            ):
+                self.vars.set("csrf", parsed.data["csrf"])
+            return status, parsed.data, resp_headers, parsed.evidence
 
     def _do_http_request_with_retry(
         self, method: str, url: str, body_data: dict | None
