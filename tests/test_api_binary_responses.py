@@ -43,6 +43,10 @@ def _serve(monkeypatch: pytest.MonkeyPatch, response: _Response) -> None:
         "urllib.request.urlopen",
         lambda *_args, **_kwargs: response,
     )
+    monkeypatch.setattr(
+        "urllib.request.OpenerDirector.open",
+        lambda *_args, **_kwargs: response,
+    )
 
 
 def test_json_and_text_keep_their_compatibility_payloads() -> None:

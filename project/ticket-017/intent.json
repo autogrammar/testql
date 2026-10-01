@@ -1,0 +1,79 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-017",
+  "summary": "Restore binary response test HTTP isolation",
+  "workstream": "core",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "requested"
+  },
+  "allowedPaths": [
+    "project/ticket-017/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "tests/test_api_binary_responses.py"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "74f5141237eff330f169d4791a79d38874ff4c73",
+    "targetBranch": "main",
+    "outcome": "Restore isolated binary HTTP evidence tests for cookie-aware classic and unified IR interpreters, then publish through independent protected delivery.",
+    "nonGoals": [
+      "No HTTP runtime behavior changes",
+      "No publication policy changes"
+    ],
+    "complexity": "XS",
+    "estimatedMinutes": 10,
+    "budgets": {
+      "maxImplementationFiles": 1,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Mock the urllib opener boundary alongside urlopen so both HTTP execution paths remain isolated.",
+      "components": [
+        {
+          "name": "http-contract-tests",
+          "paths": [
+            "tests/test_api_binary_responses.py"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert the single test helper change."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "python -m pytest tests/test_api_binary_responses.py tests/test_api_runner_ssl_cookies.py tests/test_api_optional_unreachable.py -q"
+        ],
+        "evidence": "Binary evidence and SSL/cookie/error contracts pass without contacting example.invalid."
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "bash project/governance-check.sh --actor agent"
+        ],
+        "evidence": "Managed gate passes with zero errors."
+      }
+    ]
+  }
+}
