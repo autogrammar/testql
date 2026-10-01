@@ -31,4 +31,4 @@ jobs:
       - name: Validate adopted requirements and Docs metadata
         env:
           PYTHONPATH: ${{ github.workspace }}/.wellman-runtime/src
-        run: python scripts/check-wellman.py
+        run: python -S scripts/check-wellman.py
