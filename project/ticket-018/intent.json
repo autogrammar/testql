@@ -1,0 +1,84 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-018",
+  "summary": "Validate adopted Wellman source in CI without build resolution",
+  "workstream": "infrastructure",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P1",
+    "origin": "requested"
+  },
+  "allowedPaths": [
+    "project/ticket-018/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    ".github/workflows/wellman.yml"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [],
+  "dependsOn": [
+    "ticket-016"
+  ],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "b22c09ced0694902c79ca8e4e53d2fe591cad505",
+    "targetBranch": "main",
+    "outcome": "Run the adopted metadata checker in CI using exact dependency-free Wellman source, without pip dependency or build-backend resolution.",
+    "nonGoals": [
+      "No changes to application code or adopted metadata",
+      "No new required-check policy or bypass of independent publication",
+      "No S3-S5 certification claim"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 20,
+    "budgets": {
+      "maxImplementationFiles": 1,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 1
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Use a pinned checkout action for Wellman revision 58d7ae1ba768ead256e0e9a05fd641a0d8faec28, verify its Git SHA, and import its dependency-free source only in the metadata validation step.",
+      "components": [
+        {
+          "name": "ci",
+          "paths": [
+            ".github/workflows/wellman.yml"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert this workflow; keep existing governance and product checks."
+    },
+    "runtimeDependencies": [
+      "wellman@58d7ae1ba768ead256e0e9a05fd641a0d8faec28"
+    ],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "python scripts/check-wellman.py"
+        ],
+        "evidence": "The same pinned runtime and checker succeed locally and in the hosted metadata job."
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "bash project/governance-check.sh --actor agent"
+        ],
+        "evidence": "Managed gate validates the infrastructure scope."
+      }
+    ]
+  }
+}
