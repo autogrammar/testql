@@ -1,0 +1,85 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-022",
+  "summary": "Support TestTOON files in INCLUDE command",
+  "workstream": "core",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    "project/ticket-022/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "testql/interpreter/_flow.py",
+    "tests/test_include_testtoon.py"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [
+    "python"
+  ],
+  "dependsOn": [
+    "ticket-021"
+  ],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "d609382cb3a2933ee5cf69b8af4e1b0552314587",
+    "targetBranch": "main",
+    "outcome": "Allow the INCLUDE command to parse included TestTOON scenarios (.testql.toon.yaml) using the interpreter's format detection instead of assuming legacy OQL syntax.",
+    "nonGoals": [
+      "No changes to circular include detection",
+      "No changes to include paths resolution"
+    ],
+    "complexity": "XS",
+    "estimatedMinutes": 10,
+    "budgets": {
+      "maxImplementationFiles": 2,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Use self.parse(source, filename=rel_path) in _cmd_include to parse both TestTOON and OQL included scripts.",
+      "components": [
+        {
+          "name": "flow-include",
+          "paths": [
+            "testql/interpreter/_flow.py",
+            "tests/test_include_testtoon.py"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert the _cmd_include parser call."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "pytest tests/test_include_testtoon.py"
+        ],
+        "evidence": "Included TestTOON files are parsed and dispatched as OQL lines."
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "bash project/governance-check.sh --actor agent"
+        ],
+        "evidence": "Governance check passes."
+      }
+    ]
+  }
+}

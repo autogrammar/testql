@@ -133,7 +133,10 @@ class FlowMixin:
         self._included.add(abs_path)
         self.out.step("📎", f"INCLUDE {rel_path}")
         source = resolved.read_text(encoding="utf-8")
-        sub_script: OqlScript = parse_oql(source, filename=rel_path)
+        if hasattr(self, "parse"):
+            sub_script: OqlScript = self.parse(source, filename=rel_path)
+        else:
+            sub_script = parse_oql(source, filename=rel_path)
         for sub_line in sub_script.lines:
             sub_args = self.vars.interpolate(sub_line.args)
             try:
