@@ -1,0 +1,83 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-020",
+  "summary": "Resolve relative URLs and optional input values in GUI scenarios",
+  "workstream": "core",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    "project/ticket-020/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "testql/interpreter/_gui.py",
+    "tests/test_gui_relative_url.py"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [
+    "python"
+  ],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "24ae3a97424d9d9694bd1576393d8e4c55893c88",
+    "targetBranch": "main",
+    "outcome": "Allow TestQL GUI scenarios to launch with relative URL routes resolved against base_url, and support optional input values in GUI_INPUT.",
+    "nonGoals": [
+      "No breaking changes to desktop backend launches",
+      "No changes to unsupported external drivers"
+    ],
+    "complexity": "XS",
+    "estimatedMinutes": 10,
+    "budgets": {
+      "maxImplementationFiles": 2,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "In _start_playwright and _start_selenium, resolve relative paths against base_url or api_url when path is not an existing file on disk; in _cmd_gui_input accept single-argument selector with empty text.",
+      "components": [
+        {
+          "name": "gui-interpreter",
+          "paths": [
+            "testql/interpreter/_gui.py",
+            "tests/test_gui_relative_url.py"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert the GUI interpreter resolution changes."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "pytest tests/test_gui_relative_url.py"
+        ],
+        "evidence": "GUI_START resolves relative URLs with base_url."
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "bash project/governance-check.sh --actor agent"
+        ],
+        "evidence": "Governance check passes."
+      }
+    ]
+  }
+}

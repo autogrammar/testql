@@ -337,6 +337,21 @@ class GuiMixin:
         """Start Playwright and navigate to app_path."""
         cdp_url = self.vars.get("cdp_url") or self.vars.get("browser.cdp_url")
         if (
+            not (
+                app_path.startswith(("http://", "https://", "about:", "file://"))
+                or cdp_url
+                or app_path in ("current", ".")
+            )
+            and not Path(app_path).expanduser().is_file()
+        ):
+            base_url = str(
+                self.vars.get("base_url")
+                or getattr(self, "api_url", None)
+                or "http://localhost:8100"
+            )
+            app_path = f"{base_url.rstrip('/')}/{app_path.lstrip('/')}" if app_path else base_url
+
+        if (
             app_path.startswith(("http://", "https://", "about:"))
             or cdp_url
             or app_path in ("current", ".")
@@ -476,7 +491,18 @@ class GuiMixin:
         """Start Selenium WebDriver."""
         from selenium import webdriver
 
-        if app_path.startswith(("http://", "https://", "about:")):
+        if (
+            not app_path.startswith(("http://", "https://", "about:", "file://"))
+            and not Path(app_path).expanduser().is_file()
+        ):
+            base_url = str(
+                self.vars.get("base_url")
+                or getattr(self, "api_url", None)
+                or "http://localhost:8100"
+            )
+            app_path = f"{base_url.rstrip('/')}/{app_path.lstrip('/')}" if app_path else base_url
+
+        if app_path.startswith(("http://", "https://", "about:", "file://")):
             # Web app
             headless = str(self.vars.get("headless", "true")).lower() == "true"
             options = webdriver.ChromeOptions()
@@ -527,7 +553,7 @@ class GuiMixin:
                 # Handle relative paths if base_url is set
                 target = path
                 if not (path.startswith("http://") or path.startswith("https://")):
-                    base_url = self.vars.get("base_url", "http://localhost:8100")
+                    base_url = str(self.vars.get("base_url") or getattr(self, "api_url", None) or "http://localhost:8100")
                     target = f"{base_url.rstrip('/')}/{path.lstrip('/')}"
                 
                 timeout = self._gui_operation_timeout(15000)
@@ -547,7 +573,7 @@ class GuiMixin:
             elif self._gui_driver == "selenium":
                 target = path
                 if not (path.startswith("http://") or path.startswith("https://")):
-                    base_url = self.vars.get("base_url", "http://localhost:8100")
+                    base_url = str(self.vars.get("base_url") or getattr(self, "api_url", None) or "http://localhost:8100")
                     target = f"{base_url.rstrip('/')}/{path.lstrip('/')}"
                 
                 self._gui_page.get(target)
@@ -634,12 +660,13 @@ class GuiMixin:
             GUI_INPUT "input#username" "testuser"
         """
         parts = args.strip().split(None, 1)
-        if len(parts) < 2:
-            self.out.fail(f"L{line.number}: GUI_INPUT requires selector and text")
+        if not parts:
+            self.out.fail(f"L{line.number}: GUI_INPUT requires selector")
             return
 
         selector = parts[0].strip('"\'')
-        text = parts[1].strip('"\'')
+        raw_text = parts[1].strip('"\'') if len(parts) > 1 else ""
+        text = "" if raw_text == "-" else raw_text
         display_text = "***REDACTED***" if getattr(self, "is_secret_value", lambda value: False)(text) else text[:20]
 
         if self.dry_run:
