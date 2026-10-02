@@ -1,0 +1,85 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-025",
+  "summary": "Fallback selector resolution for GUI input and select",
+  "workstream": "core",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    "project/ticket-025/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "testql/interpreter/_gui.py",
+    "tests/test_gui_input_fallback.py"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [
+    "python"
+  ],
+  "dependsOn": [
+    "ticket-024"
+  ],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "1e56f78908ee0b261b1e9091da1185bfc84dc560",
+    "targetBranch": "main",
+    "outcome": "Resolve selectors with fallback strategies in GUI_INPUT and GUI_SELECT commands before executing fill/clear/select operations, failing fast when not found without 5000ms Playwright timeout stalls.",
+    "nonGoals": [
+      "No changes to desktop driver",
+      "No changes to CDP attachment protocol"
+    ],
+    "complexity": "XS",
+    "estimatedMinutes": 10,
+    "budgets": {
+      "maxImplementationFiles": 2,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "In _cmd_gui_input and _cmd_gui_select, resolve target selector and element via _find_element_with_logging before calling fill/clear/select, and record clean StepStatus.FAILED when element is not found.",
+      "components": [
+        {
+          "name": "gui-commands",
+          "paths": [
+            "testql/interpreter/_gui.py",
+            "tests/test_gui_input_fallback.py"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert selector resolution in _cmd_gui_input and _cmd_gui_select."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "pytest tests/test_gui_input_fallback.py"
+        ],
+        "evidence": "GUI_INPUT resolves selectors with fallbacks and fails fast when not found."
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "bash project/governance-check.sh"
+        ],
+        "evidence": "Governance check passes."
+      }
+    ]
+  }
+}
