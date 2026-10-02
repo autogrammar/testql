@@ -1,0 +1,89 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-021",
+  "summary": "Normalize attribute selectors parsed as lists in TOON tables",
+  "workstream": "core",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    "project/ticket-021/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "testql/interpreter/_testtoon_parser.py",
+    "testql/interpreter/_gui.py",
+    "testql/interpreter/_gui_expand.py",
+    "tests/test_toon_attribute_selector.py"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [
+    "python"
+  ],
+  "dependsOn": [
+    "ticket-020"
+  ],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "3bc2815277d6b2db7eeb4a8ecba6612ed7c64cea",
+    "targetBranch": "main",
+    "outcome": "Normalize CSS attribute selectors like [data-action='foo'] when parsed into single-element lists by TOON table parser, ensuring valid selectors are emitted for GUI commands.",
+    "nonGoals": [
+      "No changes to general TOON array parsing for non-selector columns",
+      "No changes to unrelated commands"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 20,
+    "budgets": {
+      "maxImplementationFiles": 4,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Add normalization for attribute selectors parsed as list representations in _testtoon_parser, _gui_expand, and _gui element resolution.",
+      "components": [
+        {
+          "name": "toon-parser",
+          "paths": [
+            "testql/interpreter/_testtoon_parser.py",
+            "testql/interpreter/_gui.py",
+            "testql/interpreter/_gui_expand.py",
+            "tests/test_toon_attribute_selector.py"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert the selector normalization logic."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "pytest tests/test_toon_attribute_selector.py"
+        ],
+        "evidence": "Attribute selectors in TOON tables expand to valid CSS selectors."
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "bash project/governance-check.sh --actor agent"
+        ],
+        "evidence": "Governance check passes with zero errors."
+      }
+    ]
+  }
+}
