@@ -100,6 +100,24 @@ class TestLongestMatchWins:
         assert m.intent == "sql"
 
 
+@pytest.mark.parametrize(
+    ("lang", "line", "tail"),
+    [
+        ("en", 'Type "A  B" into field', '"A  B" into field'),
+        ("pl", 'Wprowadź "東京\tŁódź" do pola email', '"東京\tŁódź" do pola email'),
+        ("pl", 'Wprowadź "A\u00a0B" do pola email', '"A\u00a0B" do pola email'),
+        ("en", "Click `[data-name='A  B']`", "`[data-name='A  B']`"),
+        ("en", "  Go\tto   `/path with  spaces`  ", "`/path with  spaces`"),
+        ("pl", "Wykonaj\tzapytanie  SQL SELECT *  FROM users", "SELECT *  FROM users"),
+    ],
+)
+def test_recognition_preserves_original_argument_whitespace(lang, line, tail):
+    match = recognize_intent(line, load_lexicon(lang))
+    assert match.intent != "unknown"
+    assert match.tail == tail
+    assert match.raw == line
+
+
 class TestRecognizeOperator:
     def test_equal_pl(self, pl):
         op = recognize_operator("status to 200", pl)
