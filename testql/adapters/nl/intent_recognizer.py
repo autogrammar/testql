@@ -18,7 +18,7 @@ class IntentMatch:
 
     intent: str            # navigate | click | input | assert | wait | api | sql | encoder | unknown
     verb: str = ""         # the matched verb phrase (lower-cased)
-    tail: str = ""         # text after the verb (preserves original casing)
+    tail: str = ""         # text after the verb (preserves casing and literal whitespace)
     raw: str = ""          # original line
     confidence: float = 0.0
     extras: dict = field(default_factory=dict)  # e.g. {"prepositions": [...], "field_nouns": [...]}
@@ -53,11 +53,10 @@ def recognize_intent(line: str, lexicon: dict) -> IntentMatch:
                                confidence=1.0, extras=extras)
         prefix = f"{verb} "
         if normalized.startswith(prefix):
-            # Recover original-case tail by chopping the same number of *raw*
-            # tokens off the original line.
+            # Split only the matched verb prefix. Splitting and rejoining the
+            # entire line would also normalize whitespace inside literals.
             verb_word_count = len(verb.split())
-            raw_tokens = line.strip().split()
-            tail = " ".join(raw_tokens[verb_word_count:])
+            tail = line.strip().split(maxsplit=verb_word_count)[verb_word_count]
             return IntentMatch(intent=intent, verb=verb, tail=tail, raw=line,
                                confidence=0.95, extras=extras)
     return IntentMatch(intent="unknown", raw=line, confidence=0.0)

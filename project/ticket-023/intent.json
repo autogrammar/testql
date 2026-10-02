@@ -1,0 +1,84 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-023",
+  "summary": "Preserve literal whitespace in NL intent translation",
+  "workstream": "core",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    "project/ticket-023/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "testql/adapters/nl/intent_recognizer.py",
+    "tests/test_nl_adapter.py",
+    "tests/test_nl_intent_recognizer.py"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "85caa15e56203d141e0edf69cb426a1430309080",
+    "targetBranch": "main",
+    "outcome": "NL parsing preserves exact whitespace and Unicode inside literal arguments; independently publish the correction.",
+    "nonGoals": [
+      "No new lexicon, models or public API",
+      "Preserve concurrent source work and other tickets"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 20,
+    "budgets": {
+      "maxImplementationFiles": 3,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Limit raw-line token splitting to the matched verb prefix and preserve the remainder for entity extraction.",
+      "components": [
+        {
+          "name": "nl-adapter",
+          "paths": [
+            "testql/adapters/nl/intent_recognizer.py",
+            "tests/test_nl_adapter.py",
+            "tests/test_nl_intent_recognizer.py"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert the bounded parser correction."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "pytest affected NL tests"
+        ],
+        "evidence": "Regression fails on unchanged parser and passes after correction."
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "pytest NL subsystem",
+          "project/governance-check.sh"
+        ],
+        "evidence": "Existing NL tests and exact-base scope checks pass."
+      }
+    ]
+  }
+}

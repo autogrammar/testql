@@ -50,6 +50,31 @@ LANG: en
 """
 
 
+@pytest.mark.parametrize("value", ["A  B", "東京\tŁódź", "A\u00a0B"])
+@pytest.mark.parametrize(
+    ("lang", "command"), [("en", "Type"), ("pl", "Wprowadź")]
+)
+def test_input_ir_preserves_literal_whitespace(value, lang, command):
+    plan = parse(f'# SCENARIO: literal\nTYPE: gui\nLANG: {lang}\n1. {command} "{value}"')
+    assert isinstance(plan.steps[0], GuiStep)
+    assert plan.steps[0].action == "input"
+    assert plan.steps[0].value == value
+
+
+def test_click_ir_preserves_whitespace_inside_selector():
+    selector = "[data-name='A  B']"
+    plan = parse(f"# SCENARIO: selector\nTYPE: gui\nLANG: en\n1. Click `{selector}`")
+    assert isinstance(plan.steps[0], GuiStep)
+    assert plan.steps[0].selector == selector
+
+
+def test_sql_ir_preserves_query_whitespace():
+    query = "SELECT *  FROM users"
+    plan = parse(f"# SCENARIO: query\nTYPE: sql\nLANG: pl\n1. Zapytaj {query}")
+    assert isinstance(plan.steps[0], SqlStep)
+    assert plan.steps[0].query == query
+
+
 class TestDetect:
     def test_detect_by_extension(self, tmp_path: Path):
         p = tmp_path / "x.nl.md"
