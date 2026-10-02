@@ -366,6 +366,31 @@ class GuiMixin:
             operation_timeout = self._gui_operation_timeout()
             navigation_timeout = self._gui_operation_timeout(15000)
 
+            if self._gui_page is not None and self._gui_app is not None:
+                try:
+                    is_closed = False
+                    if hasattr(self._gui_page, "is_closed"):
+                        is_closed = self._gui_page.is_closed()
+                    if not is_closed:
+                        if app_path and app_path not in ("current", ".", "about:blank"):
+                            if not self._same_url_without_hash(getattr(self._gui_page, "url", ""), app_path):
+                                try:
+                                    self._gui_page.goto(app_path, timeout=navigation_timeout)
+                                except Exception as nav_error:
+                                    if "net::ERR_ABORTED" not in str(nav_error):
+                                        raise
+                        self.out.step("🖥️", f"Playwright: Reused session, opened {app_path}")
+                        self.results.append(StepResult(
+                            name=f'GUI_START "{app_path[:40]}"', status=StepStatus.PASSED
+                        ))
+                        return
+                    else:
+                        self._close_gui_session()
+                except Exception:
+                    self._close_gui_session()
+            elif self._gui_app is not None:
+                self._close_gui_session()
+
             if cdp_url:
                 if self._gui_playwright_backend == "node":
                     raise RuntimeError(
@@ -503,6 +528,20 @@ class GuiMixin:
                 or "http://localhost:8100"
             )
             app_path = f"{base_url.rstrip('/')}/{app_path.lstrip('/')}" if app_path else base_url
+
+        if self._gui_page is not None and self._gui_app is not None:
+            try:
+                if app_path.startswith(("http://", "https://", "about:", "file://")):
+                    self._gui_app.get(app_path)
+                    self.out.step("🖥️", f"Selenium: Reused session, opened {app_path}")
+                    self.results.append(StepResult(
+                        name=f'GUI_START "{app_path[:40]}"', status=StepStatus.PASSED
+                    ))
+                    return
+            except Exception:
+                self._close_gui_session()
+        elif self._gui_app is not None:
+            self._close_gui_session()
 
         if app_path.startswith(("http://", "https://", "about:", "file://")):
             # Web app
