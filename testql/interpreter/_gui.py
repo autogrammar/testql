@@ -210,6 +210,8 @@ class GuiMixin:
         
         Returns (working_selector, element) or (None, None) if not found.
         """
+        if selector.startswith(('["', "['")) and selector.endswith(('"]', "']")):
+            selector = f"[{selector[2:-2]}]"
         resolved = self._resolve_selector_with_fallback(selector)
         
         if resolved is None:
@@ -602,6 +604,8 @@ class GuiMixin:
             GUI_CLICK "button#submit"
         """
         selector = args.strip().strip('"\'')
+        if selector.startswith(('["', "['")) and selector.endswith(('"]', "']")):
+            selector = f"[{selector[2:-2]}]"
         if not selector:
             self.out.fail(f"L{line.number}: GUI_CLICK requires selector")
             return
@@ -665,6 +669,8 @@ class GuiMixin:
             return
 
         selector = parts[0].strip('"\'')
+        if selector.startswith(('["', "['")) and selector.endswith(('"]', "']")):
+            selector = f"[{selector[2:-2]}]"
         raw_text = parts[1].strip('"\'') if len(parts) > 1 else ""
         text = "" if raw_text == "-" else raw_text
         display_text = "***REDACTED***" if getattr(self, "is_secret_value", lambda value: False)(text) else text[:20]

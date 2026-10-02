@@ -35,7 +35,16 @@ def quote_gui_token(token: str, *, empty: str = '""') -> str:
 
 def gui_row_fields(row: dict[str, object]) -> tuple[str, str, object, object]:
     action = str(row.get("action", "")).strip().lower()
-    selector = str(row.get("selector") or row.get("target") or "").strip()
+    raw_sel = row.get("selector") or row.get("target") or ""
+    if isinstance(raw_sel, list):
+        if len(raw_sel) == 1:
+            selector = f"[{raw_sel[0]}]"
+        else:
+            selector = f"[{', '.join(str(x) for x in raw_sel)}]"
+    elif isinstance(raw_sel, str) and raw_sel.startswith(('["', "['")) and raw_sel.endswith(('"]', "']")):
+        selector = f"[{raw_sel[2:-2]}]"
+    else:
+        selector = str(raw_sel).strip()
     value = row.get("value") if row.get("value") not in (None, "-") else row.get("text")
     wait_ms = row.get("wait_ms")
     return action, selector, value, wait_ms

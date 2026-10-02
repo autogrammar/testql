@@ -422,6 +422,13 @@ def _expand_flow(section: ToonSection, lines: list[OqlLine], line_num: int) -> i
     for row in section.rows:
         command = str(row.get('command', '')).upper()
         target = row.get('target', '')
+        if isinstance(target, list):
+            if len(target) == 1:
+                target = f"[{target[0]}]"
+            else:
+                target = f"[{', '.join(str(x) for x in target)}]"
+        elif isinstance(target, str) and target.startswith(('["', "['")) and target.endswith(('"]', "']")):
+            target = f"[{target[2:-2]}]"
 
         extra = ''
         # Prefer explicit value/text columns (typed text input)
@@ -437,7 +444,7 @@ def _expand_flow(section: ToonSection, lines: list[OqlLine], line_num: int) -> i
             if isinstance(meta, dict):
                 pairs = ', '.join(f'"{k}": "{v}"' for k, v in meta.items())
                 extra = f' {{{pairs}}}'
-            elif meta:
+            elif meta and meta != '-' and str(meta).lower() != 'null':
                 extra = f' {meta}'
 
         args = f'"{target}"{extra}'
