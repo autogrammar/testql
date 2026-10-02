@@ -1,0 +1,85 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-024",
+  "summary": "Reuse active GUI session on subsequent GUI_START",
+  "workstream": "core",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    "project/ticket-024/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "testql/interpreter/_gui.py",
+    "tests/test_gui_reuse_session.py"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [
+    "python"
+  ],
+  "dependsOn": [
+    "ticket-023"
+  ],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "14bf7e417727ee66e04313f3ad19e5f13d5e3f69",
+    "targetBranch": "main",
+    "outcome": "Allow GUI_START to safely reuse an existing active browser session or navigate to new URL without raising Playwright sync loop concurrency errors.",
+    "nonGoals": [
+      "No changes to desktop driver",
+      "No changes to CDP attachment protocol"
+    ],
+    "complexity": "XS",
+    "estimatedMinutes": 10,
+    "budgets": {
+      "maxImplementationFiles": 2,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "In _start_playwright and _start_selenium, check if an active page/app session exists and is open. If open, reuse and navigate to app_path instead of launching a second sync_playwright instance; if closed, close session cleanly before starting a new one.",
+      "components": [
+        {
+          "name": "gui-session",
+          "paths": [
+            "testql/interpreter/_gui.py",
+            "tests/test_gui_reuse_session.py"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert GUI session reuse in _start_playwright."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "pytest tests/test_gui_reuse_session.py"
+        ],
+        "evidence": "Subsequent GUI_START commands reuse the active Playwright session without raising exceptions."
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "bash project/governance-check.sh"
+        ],
+        "evidence": "Governance check passes."
+      }
+    ]
+  }
+}
