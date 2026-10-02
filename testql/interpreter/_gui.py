@@ -730,21 +730,30 @@ class GuiMixin:
             ))
             return
 
+        resolved_selector, element = self._find_element_with_logging(selector, "input")
+        if resolved_selector is None:
+            self.out.fail(f'GUI_INPUT "{selector}": Element not found')
+            self.results.append(StepResult(
+                name=f'GUI_INPUT "{selector}"',
+                status=StepStatus.FAILED,
+                message="Element not found after trying fallback selectors",
+            ))
+            return
+
         try:
             if self._gui_driver == "playwright":
-                self._gui_page.fill(selector, text)
+                timeout = self.timeout_ms if self.timeout_ms else 30000
+                element.fill(text, timeout=timeout)
             elif self._gui_driver == "selenium":
-                from selenium.webdriver.common.by import By
-                elem = self._gui_page.find_element(By.CSS_SELECTOR, selector)
-                elem.clear()
-                elem.send_keys(text)
+                element.clear()
+                element.send_keys(text)
 
-            self.out.step("⌨️", f'GUI_INPUT "{selector}" → "{display_text}"')
+            self.out.step("⌨️", f'GUI_INPUT "{resolved_selector}" → "{display_text}"')
             self.results.append(StepResult(
                 name=f'GUI_INPUT "{selector}"', status=StepStatus.PASSED
             ))
         except Exception as e:
-            self.out.fail(f'GUI_INPUT "{selector}" error: {e}')
+            self.out.fail(f'GUI_INPUT "{resolved_selector}" error: {e}')
             self.results.append(StepResult(
                 name=f'GUI_INPUT "{selector}"',
                 status=StepStatus.ERROR,
@@ -940,6 +949,8 @@ class GuiMixin:
             self.results.append(StepResult(name="GUI_SELECT", status=StepStatus.ERROR, message="selector and value required"))
             return
         selector, value = parts[0], parts[1]
+        if selector.startswith(('["', "['")) and selector.endswith(('"]', "']")):
+            selector = f"[{selector[2:-2]}]"
         name = f'GUI_SELECT "{selector}"'
         if self.dry_run:
             self.out.step("🔽", f'{name} → "{value}" (dry-run)')
@@ -949,25 +960,36 @@ class GuiMixin:
             self.out.fail("GUI_SELECT: No active GUI session")
             self.results.append(StepResult(name=name, status=StepStatus.ERROR, message="No active GUI session"))
             return
+
+        resolved_selector, element = self._find_element_with_logging(selector, "select")
+        if resolved_selector is None:
+            self.out.fail(f'{name}: Element not found')
+            self.results.append(StepResult(
+                name=name,
+                status=StepStatus.FAILED,
+                message="Element not found after trying fallback selectors",
+            ))
+            return
+
         try:
             if self._gui_driver == "playwright":
-                selected = self._gui_page.select_option(selector, value=value)
+                timeout = self.timeout_ms if self.timeout_ms else 30000
+                selected = self._gui_page.select_option(resolved_selector, value=value, timeout=timeout)
                 if not selected:
-                    selected = self._gui_page.select_option(selector, label=value)
+                    selected = self._gui_page.select_option(resolved_selector, label=value, timeout=timeout)
                 if not selected:
                     raise ValueError(f"option not found: {value}")
             elif self._gui_driver == "selenium":
-                from selenium.webdriver.common.by import By
                 from selenium.webdriver.support.ui import Select
-                select = Select(self._gui_page.find_element(By.CSS_SELECTOR, selector))
+                select = Select(element)
                 try:
                     select.select_by_value(value)
                 except Exception:
                     select.select_by_visible_text(value)
-            self.out.step("🔽", f'{name} → "{value}"')
+            self.out.step("🔽", f'GUI_SELECT "{resolved_selector}" → "{value}"')
             self.results.append(StepResult(name=name, status=StepStatus.PASSED))
         except Exception as e:
-            self.out.fail(f'{name} error: {e}')
+            self.out.fail(f'GUI_SELECT "{resolved_selector}" error: {e}')
             self.results.append(StepResult(name=name, status=StepStatus.ERROR, message=str(e)))
 
     def _cmd_select(self, args: str, line: OqlLine) -> None:
@@ -1703,17 +1725,24 @@ class GuiMixin:
         return False
 
     def _read_gui_value(self, selector: str) -> str:
+        if selector.startswith(('["', "['")) and selector.endswith(('"]', "']")):
+            selector = f"[{selector[2:-2]}]"
+        resolved = self._resolve_selector_with_fallback(selector) or selector
+        timeout = min(self._gui_operation_timeout(), 250)
         if self._gui_driver == "playwright":
-            locator = self._gui_page.locator(selector).first
+            locator = self._gui_page.locator(resolved).first
             try:
-                return locator.input_value()
+                return locator.input_value(timeout=timeout)
             except Exception:
-                value = locator.get_attribute("value")
-                return value or ""
+                try:
+                    value = locator.get_attribute("value", timeout=timeout)
+                    return value or ""
+                except Exception:
+                    return ""
         if self._gui_driver == "selenium":
             from selenium.webdriver.common.by import By
 
-            elem = self._gui_page.find_element(By.CSS_SELECTOR, selector)
+            elem = self._gui_page.find_element(By.CSS_SELECTOR, resolved)
             value = elem.get_attribute("value")
             return value or ""
         return ""
