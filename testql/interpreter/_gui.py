@@ -1732,10 +1732,16 @@ class GuiMixin:
         if self._gui_driver == "playwright":
             locator = self._gui_page.locator(resolved).first
             try:
-                return locator.input_value(timeout=timeout)
+                try:
+                    return locator.input_value(timeout=timeout)
+                except TypeError:
+                    return locator.input_value()
             except Exception:
                 try:
-                    value = locator.get_attribute("value", timeout=timeout)
+                    try:
+                        value = locator.get_attribute("value", timeout=timeout)
+                    except TypeError:
+                        value = locator.get_attribute("value")
                     return value or ""
                 except Exception:
                     return ""

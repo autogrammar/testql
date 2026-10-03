@@ -420,6 +420,15 @@ def _expand_flow(section: ToonSection, lines: list[OqlLine], line_num: int) -> i
     still emit ``CLICK "selector"`` cleanly.
     """
     for row in section.rows:
+        if 'condition' in row and 'action' in row:
+            condition = str(row.get('condition') or '').strip()
+            action = str(row.get('action') or '').strip()
+            if condition and action:
+                args = f"{condition} THEN {action}"
+                raw = f"IF {args}"
+                lines.append(OqlLine(number=line_num, command="IF", args=args, raw=raw))
+                line_num += 1
+            continue
         command = str(row.get('command', '')).upper()
         target = row.get('target', '')
         if isinstance(target, list):

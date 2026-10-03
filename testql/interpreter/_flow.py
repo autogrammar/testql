@@ -101,11 +101,77 @@ class FlowMixin:
 
     def _cmd_log(self, args: str, line: OqlLine) -> None:
         msg = args.strip()
-        if msg.startswith('"'):
+        if (msg.startswith('"') and msg.endswith('"')) or (msg.startswith("'") and msg.endswith("'")):
+            msg = msg[1:-1]
+        elif msg.startswith('"'):
             end = msg.find('"', 1)
             if end > 0:
                 msg = msg[1:end]
+        elif msg.startswith("'"):
+            end = msg.find("'", 1)
+            if end > 0:
+                msg = msg[1:end]
         self.out.info(msg)
+
+    def _cmd_if(self, args: str, line: OqlLine) -> None:
+        """IF <path> <op> <expected> THEN <action>
+        e.g. IF _status >= 500 THEN LOG 'Server error detected'
+        """
+        import re
+        from ._assertions import _COMPARE_OPS
+        from ._api_runner import _navigate_json_path
+
+        match = re.search(r'\s+THEN\s+', args, flags=re.IGNORECASE)
+        if match:
+            condition_str = args[:match.start()].strip()
+            action_str = args[match.end():].strip()
+        else:
+            parts = args.strip().split(None, 3)
+            if len(parts) >= 4 and parts[1] in _COMPARE_OPS:
+                condition_str = f"{parts[0]} {parts[1]} {parts[2]}"
+                action_str = parts[3]
+            else:
+                return
+
+        cond_parts = condition_str.split(None, 2)
+        if len(cond_parts) < 3:
+            return
+        path, op, expected_str = cond_parts[0], cond_parts[1], cond_parts[2]
+
+        if path.startswith("_"):
+            match_var = re.match(r"^(_[A-Za-z0-9_]+)(?:\.(.+))?$", path)
+            if match_var:
+                root_name = match_var.group(1)
+                remainder = match_var.group(2)
+                root_obj = self.vars.get(root_name)
+                obj = _navigate_json_path(root_obj, remainder) if remainder else root_obj
+            else:
+                obj = self.vars.get(path)
+        else:
+            obj = _navigate_json_path(self.last_response, path)
+
+        literal = expected_str.strip().strip("\"'")
+        lowered = literal.lower()
+        if lowered == "true":
+            expected = True
+        elif lowered == "false":
+            expected = False
+        elif lowered in {"null", "none"}:
+            expected = None
+        else:
+            try:
+                expected = float(literal) if "." in literal else int(literal)
+            except ValueError:
+                expected = literal
+
+        cmp_fn = _COMPARE_OPS.get(op)
+        ok = cmp_fn(obj, expected) if cmp_fn else False
+
+        if ok and action_str:
+            action_parts = action_str.split(None, 1)
+            act_cmd = action_parts[0]
+            act_args = action_parts[1] if len(action_parts) > 1 else ""
+            self._dispatch(act_cmd, act_args, OqlLine(number=line.number, command=act_cmd.upper(), args=act_args, raw=action_str))
 
     def _cmd_print(self, args: str, line: OqlLine) -> None:
         self.out.emit(args)
