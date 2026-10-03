@@ -15,6 +15,7 @@
     "testql/commands/run_cmd.py",
     "testql/interpreter/_api_runner.py",
     "testql/interpreter/_flow.py",
+    "testql/interpreter/_gui.py",
     "testql/interpreter/_testtoon_parser.py",
     "tests/test_flow_conditions.py"
   ],
