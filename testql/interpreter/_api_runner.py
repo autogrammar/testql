@@ -291,7 +291,8 @@ class ApiRunnerMixin:
         body_str = parts[2] if len(parts) > 2 else ""
 
         if url.startswith("/"):
-            url = f"{self.api_url}{url}"
+            base = str(self.vars.get("base_url") or self.vars.get("api_url") or self.api_url).rstrip("/")
+            url = f"{base}{url}"
 
         body_data = None
         if body_str:

@@ -92,9 +92,12 @@ def _run_single(
 
     from testql.interpreter import OqlInterpreter
 
+    interp_vars = {}
+    if url:
+        interp_vars["base_url"] = url
     interp = OqlInterpreter(
-        api_url=url,
-        variables={"base_url": url},
+        api_url=url or "http://localhost:8101",
+        variables=interp_vars,
         dry_run=dry_run,
         quiet=quiet,
         include_paths=[str(path.parent), "."],
@@ -214,7 +217,7 @@ def _maybe_planfile(result, filename: str, planfile: bool) -> None:
 
 @click.command()
 @click.argument("files", nargs=-1, required=True, type=str)
-@click.option("--url", default="http://localhost:8101", help="Base API URL")
+@click.option("--url", default=None, help="Base API URL")
 @click.option("--dry-run", is_flag=True, help="Parse and validate without executing")
 @click.option(
     "--output",

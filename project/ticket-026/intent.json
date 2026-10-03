@@ -1,0 +1,30 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-026",
+  "summary": "Support FLOW condition action and relative base_url resolution",
+  "workstream": "core",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P2",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    "project/ticket-026/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "testql/commands/run_cmd.py",
+    "testql/interpreter/_api_runner.py",
+    "testql/interpreter/_flow.py",
+    "testql/interpreter/_testtoon_parser.py",
+    "tests/test_flow_conditions.py"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [
+    "python"
+  ],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null
+}
