@@ -99,6 +99,11 @@ def check_and_upgrade():
 
 
 def main():
+    try:
+        from .autoupdate import check_for_updates
+        check_for_updates("testql")
+    except Exception:
+        pass
     """Entry point for console script."""
     check_and_upgrade()
     cli()
