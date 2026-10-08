@@ -1,7 +1,7 @@
 # Ticket 027: repair autoupdate support PR
 
 - **ID**: ticket-027
-- **Owner**: trusted-runner:PLF-17128
+- **Owner**: trusted-runner:PLF-17130
 - **Status**: IN_PROGRESS
 - **Workflow state**: EDIT
 - **Created**: 2026-10-07
@@ -9,7 +9,7 @@
 ## Goal and scope
 
 Repair pull request autogrammar/testql#43 at frozen head
-`9b2f8cd073435b636ca0851c50a52b1d4e73698f` against fetched main
+`e2704f5d6845322e3c86cf2bb879d1a2f94509ad` against fetched main
 `aa92ec9fb8ff91a427ed3a3e5fa0ec55e0563caf`.
 
 This ticket is the single integration ticket for the complete frozen PR diff
@@ -25,6 +25,8 @@ and the bounded repair delta. It owns only the exact candidate paths listed in
 - [ ] AC-03: Focused repository tests for the CLI autoupdate behavior pass.
 - [ ] AC-04: Required todo2code evidence is emitted for ticket2dsl, code2dsl,
       docs2dsl and service2dsl.
+- [ ] AC-05: CLI import and help rendering work from a source checkout when
+      installed package metadata is unavailable.
 
 ## Tracking boundary
 

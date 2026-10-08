@@ -57,7 +57,7 @@
     },
     "architecture": {
       "status": "accepted",
-      "decision": "Keep the update check as a cache-read plus detached background PyPI query; remove the old synchronous PyPI request from command startup.",
+      "decision": "Keep the update check as a cache-read plus detached background PyPI query, remove the old synchronous PyPI request from command startup, and keep CLI import usable from a source checkout without installed package metadata.",
       "components": [
         {
           "name": "cli-autoupdate",
@@ -77,7 +77,8 @@
       ],
       "responsibilityChanges": false,
       "interfaceChanges": [
-        "CLI startup checks cached autoupdate state and may spawn a detached background query."
+        "CLI startup checks cached autoupdate state and may spawn a detached background query.",
+        "Click version display falls back to the local project version when installed distribution metadata is unavailable."
       ],
       "dataChanges": [
         {
@@ -101,11 +102,11 @@
     "runtimeDependencies": [],
     "validation": [
       {
-        "criterion": "AC-01",
+        "criterion": "AC-01,AC-03,AC-05",
         "commands": [
           "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_cli_no_block.py -q -o addopts=''"
         ],
-        "evidence": "CLI startup remains non-blocking and avoids old synchronous network update checks."
+        "evidence": "CLI startup remains non-blocking, avoids old synchronous network update checks, and imports from the source checkout without installed package metadata."
       }
     ]
   }

@@ -17,12 +17,12 @@
     {
       "path": "project/ticket-027/README.md",
       "dsl": "ticket.acceptance.autoupdate_repair",
-      "observation": "Defines non-blocking CLI startup acceptance, exact PR-diff base ownership, focused tests, and evidence emission."
+      "observation": "Defines non-blocking CLI startup acceptance, source-checkout import acceptance, exact PR-diff base ownership, focused tests, and evidence emission."
     },
     {
       "path": "project/ticket-027/intent.json",
       "dsl": "ticket.intent.integration",
-      "observation": "Binds acceptedBaseSha to the pinned PR diff base and allowlists exact candidate and repair metadata paths."
+      "observation": "Binds acceptedBaseSha to the pinned PR diff base, records the source-checkout version fallback repair, and allowlists exact candidate and repair metadata paths."
     }
   ]
 }

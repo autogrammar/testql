@@ -22,7 +22,7 @@
     {
       "path": "testql/cli.py",
       "dsl": "cli.startup",
-      "observation": "Calls check_for_updates('testql') and no longer calls the old synchronous check_and_upgrade path from main()."
+      "observation": "Resolves Click's import-time version without requiring installed package metadata, calls check_for_updates('testql'), and no longer calls the old synchronous check_and_upgrade path from main()."
     }
   ]
 }
