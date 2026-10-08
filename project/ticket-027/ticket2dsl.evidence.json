@@ -1,0 +1,41 @@
+{
+  "schema": "todo2code.evidence/v1",
+  "kind": "ticket2dsl",
+  "ticket": "ticket-027",
+  "repository": "testql",
+  "pullRequest": "autogrammar/testql#43",
+  "frozenHead": "9b2f8cd073435b636ca0851c50a52b1d4e73698f",
+  "acceptedBaseSha": "aa92ec9fb8ff91a427ed3a3e5fa0ec55e0563caf",
+  "candidatePaths": [
+    "project/TICKETS.md",
+    "project/ticket-027/README.md",
+    "project/ticket-027/intent.json",
+    "testql/autoupdate.py",
+    "testql/cli.py"
+  ],
+  "repairDeltaPaths": [
+    "project/ticket-009/README.md",
+    "project/ticket-010/README.md",
+    "project/ticket-011/README.md",
+    "project/ticket-012/README.md",
+    "project/ticket-013/README.md",
+    "project/ticket-014/README.md",
+    "project/ticket-015/README.md",
+    "project/ticket-016/README.md",
+    "project/ticket-020/README.md",
+    "project/ticket-021/README.md",
+    "project/ticket-022/README.md",
+    "project/ticket-024/README.md",
+    "project/ticket-025/README.md",
+    "project/ticket-026/README.md",
+    "project/ticket-027/README.md",
+    "project/ticket-027/intent.json"
+  ],
+  "commands": {
+    "ticket2dsl": {
+      "available": false,
+      "observation": "command -v ticket2dsl returned no executable in this checkout"
+    }
+  },
+  "summary": "ticket-027 is refined as the single integration ticket for the frozen PR diff plus bounded repair metadata."
+}

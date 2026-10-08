@@ -1,0 +1,19 @@
+{
+  "schema": "todo2code.evidence/v1",
+  "kind": "service2dsl",
+  "ticket": "ticket-027",
+  "repository": "testql",
+  "servicePaths": [],
+  "commands": {
+    "service2dsl": {
+      "available": false,
+      "observation": "command -v service2dsl returned no executable in this checkout"
+    }
+  },
+  "observedServiceMapping": [
+    {
+      "dsl": "cli.autoupdate.notice",
+      "observation": "No runtime service, daemon, port, or protocol surface is introduced; behavior is limited to CLI stderr notice and local cache state."
+    }
+  ]
+}

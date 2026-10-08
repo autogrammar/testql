@@ -1,17 +1,112 @@
 {
   "schema": "new-project.intent/v3",
   "ticket": "ticket-027",
-  "summary": "add autoupdate support",
-  "workstream": "core",
+  "summary": "repair autoupdate support PR",
+  "workstream": "integration",
   "classification": {
     "kind": "SERVICE",
     "priority": "P2",
     "origin": "health"
   },
-  "allowedPaths": ["project/ticket-027/**", "TODO.md", "project/TICKETS.md"],
+  "allowedPaths": [
+    "project/TICKETS.md",
+    "project/ticket-009/README.md",
+    "project/ticket-010/README.md",
+    "project/ticket-011/README.md",
+    "project/ticket-012/README.md",
+    "project/ticket-013/README.md",
+    "project/ticket-014/README.md",
+    "project/ticket-015/README.md",
+    "project/ticket-016/README.md",
+    "project/ticket-020/README.md",
+    "project/ticket-021/README.md",
+    "project/ticket-022/README.md",
+    "project/ticket-024/README.md",
+    "project/ticket-025/README.md",
+    "project/ticket-026/README.md",
+    "project/ticket-027/README.md",
+    "project/ticket-027/code2dsl.evidence.json",
+    "project/ticket-027/docs2dsl.evidence.json",
+    "project/ticket-027/intent.json",
+    "project/ticket-027/service2dsl.evidence.json",
+    "project/ticket-027/ticket2dsl.evidence.json",
+    "testql/autoupdate.py",
+    "testql/cli.py"
+  ],
   "forbiddenPaths": ["project/ticket-*/user-*.md"],
-  "stacks": [],
+  "stacks": ["python"],
   "dependsOn": [],
   "conflictsWith": [],
-  "integrationTicket": null
+  "integrationTicket": "ticket-027",
+  "delivery": {
+    "acceptedBaseSha": "aa92ec9fb8ff91a427ed3a3e5fa0ec55e0563caf",
+    "targetBranch": "main",
+    "outcome": "Publish non-blocking autoupdate notice support without synchronous startup network checks.",
+    "nonGoals": [
+      "No package installation or self-upgrade",
+      "No branch publication by this model turn",
+      "No unrelated CLI behavior changes"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 30,
+    "budgets": {
+      "maxImplementationFiles": 4,
+      "maxAffectedComponents": 2,
+      "maxPublicInterfaceChanges": 1,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Keep the update check as a cache-read plus detached background PyPI query; remove the old synchronous PyPI request from command startup.",
+      "components": [
+        {
+          "name": "cli-autoupdate",
+          "paths": [
+            "testql/autoupdate.py",
+            "testql/cli.py"
+          ]
+        },
+        {
+          "name": "ticket-governance",
+          "paths": [
+            "project/TICKETS.md",
+            "project/ticket-027/README.md",
+            "project/ticket-027/intent.json"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [
+        "CLI startup checks cached autoupdate state and may spawn a detached background query."
+      ],
+      "dataChanges": [
+        {
+          "kind": "component-local-state",
+          "component": "cli-autoupdate",
+          "description": "Per-user cache file under the platform cache directory records last update check and latest observed version."
+        }
+      ],
+      "ui": {
+        "impact": "cli-stderr",
+        "states": [
+          "No update notice",
+          "Cached newer version notice"
+        ],
+        "evidence": [
+          "tests/test_cli_no_block.py"
+        ]
+      },
+      "rollback": "Revert the autoupdate module addition and CLI startup hook."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_cli_no_block.py -q -o addopts=''"
+        ],
+        "evidence": "CLI startup remains non-blocking and avoids old synchronous network update checks."
+      }
+    ]
+  }
 }

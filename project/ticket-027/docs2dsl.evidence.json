@@ -1,0 +1,28 @@
+{
+  "schema": "todo2code.evidence/v1",
+  "kind": "docs2dsl",
+  "ticket": "ticket-027",
+  "repository": "testql",
+  "documentationPaths": [
+    "project/ticket-027/README.md",
+    "project/ticket-027/intent.json"
+  ],
+  "commands": {
+    "docs2dsl": {
+      "available": false,
+      "observation": "command -v docs2dsl returned no executable in this checkout"
+    }
+  },
+  "observedDocumentationMapping": [
+    {
+      "path": "project/ticket-027/README.md",
+      "dsl": "ticket.acceptance.autoupdate_repair",
+      "observation": "Defines non-blocking CLI startup acceptance, exact PR-diff base ownership, focused tests, and evidence emission."
+    },
+    {
+      "path": "project/ticket-027/intent.json",
+      "dsl": "ticket.intent.integration",
+      "observation": "Binds acceptedBaseSha to the pinned PR diff base and allowlists exact candidate and repair metadata paths."
+    }
+  ]
+}

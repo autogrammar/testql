@@ -1,0 +1,28 @@
+{
+  "schema": "todo2code.evidence/v1",
+  "kind": "code2dsl",
+  "ticket": "ticket-027",
+  "repository": "testql",
+  "sourcePaths": [
+    "testql/autoupdate.py",
+    "testql/cli.py"
+  ],
+  "commands": {
+    "code2dsl": {
+      "available": false,
+      "observation": "command -v code2dsl returned no executable in this checkout"
+    }
+  },
+  "observedCodeMapping": [
+    {
+      "path": "testql/autoupdate.py",
+      "dsl": "cli.autoupdate.background_check",
+      "observation": "Provides cache-backed update notice logic and detached PyPI query worker."
+    },
+    {
+      "path": "testql/cli.py",
+      "dsl": "cli.startup",
+      "observation": "Calls check_for_updates('testql') and no longer calls the old synchronous check_and_upgrade path from main()."
+    }
+  ]
+}
