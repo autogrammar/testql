@@ -1,0 +1,142 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-027",
+  "summary": "repair autoupdate support PR",
+  "workstream": "integration",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P2",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    "project/TICKETS.md",
+    "project/ticket-009/README.md",
+    "project/ticket-010/README.md",
+    "project/ticket-011/README.md",
+    "project/ticket-012/README.md",
+    "project/ticket-013/README.md",
+    "project/ticket-014/README.md",
+    "project/ticket-015/README.md",
+    "project/ticket-016/README.md",
+    "project/ticket-017/README.md",
+    "project/ticket-018/README.md",
+    "project/ticket-019/README.md",
+    "project/ticket-020/README.md",
+    "project/ticket-021/README.md",
+    "project/ticket-022/README.md",
+    "project/ticket-023/README.md",
+    "project/ticket-024/README.md",
+    "project/ticket-025/README.md",
+    "project/ticket-026/README.md",
+    "project/ticket-027/README.md",
+    "project/ticket-027/code2dsl.evidence.json",
+    "project/ticket-027/docs2dsl.evidence.json",
+    "project/ticket-027/intent.json",
+    "project/ticket-027/service2dsl.evidence.json",
+    "project/ticket-027/ticket2dsl.evidence.json",
+    "pyproject.toml",
+    "testql/adapters/registry.py",
+    "testql/autoupdate.py",
+    "testql/cli.py",
+    "testql/generators/sources/__init__.py"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": ["python"],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": "ticket-027",
+  "delivery": {
+    "acceptedBaseSha": "aa92ec9fb8ff91a427ed3a3e5fa0ec55e0563caf",
+    "targetBranch": "main",
+    "outcome": "Publish non-blocking autoupdate notice support without synchronous startup network checks.",
+    "nonGoals": [
+      "No package installation or self-upgrade",
+      "No branch publication by this model turn",
+      "No unrelated CLI behavior changes"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 30,
+    "budgets": {
+      "maxImplementationFiles": 4,
+      "maxAffectedComponents": 2,
+      "maxPublicInterfaceChanges": 1,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Keep the update check as a cache-read plus detached background PyPI query, remove the old synchronous PyPI request from command startup, and keep CLI import usable from a source checkout without installed package metadata.",
+      "components": [
+        {
+          "name": "cli-autoupdate",
+          "paths": [
+            "testql/autoupdate.py",
+            "testql/cli.py"
+          ]
+        },
+        {
+          "name": "source-checkout-plugins",
+          "paths": [
+            "testql/adapters/registry.py",
+            "testql/generators/sources/__init__.py"
+          ]
+        },
+        {
+          "name": "pytest-source-layout",
+          "paths": [
+            "pyproject.toml"
+          ]
+        },
+        {
+          "name": "ticket-governance",
+          "paths": [
+            "project/TICKETS.md",
+            "project/ticket-027/README.md",
+            "project/ticket-027/intent.json"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [
+        "CLI startup checks cached autoupdate state and may spawn a detached background query.",
+        "Bundled extracted plugins are discoverable in source checkouts even before editable package installation creates entry-point metadata.",
+        "Pytest adds extracted package src directories so required test collection resolves plugin modules from a source checkout.",
+        "Click version display falls back to the local project version when installed distribution metadata is unavailable."
+      ],
+      "dataChanges": [
+        {
+          "kind": "component-local-state",
+          "component": "cli-autoupdate",
+          "description": "Per-user cache file under the platform cache directory records last update check and latest observed version."
+        }
+      ],
+      "ui": {
+        "impact": "cli-stderr",
+        "states": [
+          "No update notice",
+          "Cached newer version notice"
+        ],
+        "evidence": [
+          "tests/test_cli_no_block.py"
+        ]
+      },
+      "rollback": "Revert the autoupdate module addition and CLI startup hook."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01,AC-03,AC-05",
+        "commands": [
+          "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_cli_no_block.py -q -o addopts=''"
+        ],
+        "evidence": "CLI startup remains non-blocking, avoids old synchronous network update checks, and imports from the source checkout without installed package metadata."
+      },
+      {
+        "criterion": "AC-06",
+        "commands": [
+          "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest packages/graphql2testql/tests/test_graphql_adapter.py packages/proto2testql/tests/test_proto_adapter.py packages/sql2testql/tests/test_sql_adapter.py packages/desktop2testql/tests/test_desktop_backend.py -q -o addopts=''"
+        ],
+        "evidence": "Required package tests resolve extracted package modules and source-checkout plugin registration."
+      }
+    ]
+  }
+}

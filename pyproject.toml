@@ -100,7 +100,14 @@ vdisplay = { path = "../../wronai/vdisplay", editable = true }
 
 [tool.pytest.ini_options]
 addopts = "-p wellmanifest_governance --cov=testql --cov-report=term-missing"
-pythonpath = [".", "packages"]
+pythonpath = [
+    ".",
+    "packages",
+    "packages/desktop2testql/src",
+    "packages/graphql2testql/src",
+    "packages/proto2testql/src",
+    "packages/sql2testql/src",
+]
 # Core suite + extracted plugin packages — bare `pytest` runs everything.
 # Core tests skip plugin-dependent cases when a plugin is not installed.
 testpaths = [

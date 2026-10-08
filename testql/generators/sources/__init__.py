@@ -8,7 +8,9 @@ Externally packaged sources (e.g. `graphql2testql`) register through the
 
 from __future__ import annotations
 
+import sys
 from importlib import metadata as importlib_metadata
+from pathlib import Path
 from typing import Optional
 
 from .base import BaseSource, SourceLike
@@ -36,6 +38,15 @@ _BUILTIN: dict[str, type[BaseSource]] = {
 }
 
 _CONFIG_ALIASES = ("config", "makefile", "taskfile", "docker-compose", "buf")
+_SOURCE_CHECKOUT_SOURCES = {
+    "graphql": "graphql2testql.source:GraphQLSource",
+    "proto": "proto2testql.source:ProtoSource",
+    "sql": "sql2testql.source:SqlSource",
+}
+
+
+def _source_checkout_src(module_name: str) -> Path:
+    return Path(__file__).resolve().parents[3] / "packages" / module_name / "src"
 
 
 def _get_config_source() -> type[BaseSource]:
@@ -55,6 +66,21 @@ def _get_plugin_source(key: str) -> Optional[type[BaseSource]]:
     for entry_point in _plugin_entry_points():
         if entry_point.name == key:
             return entry_point.load()
+    fallback = _SOURCE_CHECKOUT_SOURCES.get(key)
+    if fallback is not None:
+        module_name, _, attr = fallback.partition(":")
+        try:
+            module = __import__(module_name, fromlist=[attr])
+        except ImportError:
+            src = _source_checkout_src(module_name)
+            if not src.is_dir():
+                return None
+            sys.path.insert(0, str(src))
+            try:
+                module = __import__(module_name, fromlist=[attr])
+            except ImportError:
+                return None
+        return getattr(module, attr)
     return None
 
 
@@ -75,6 +101,9 @@ def get_source(name: str) -> Optional[BaseSource]:
 
 def available_sources() -> list[str]:
     plugin_names = {ep.name for ep in _plugin_entry_points()}
+    for name in _SOURCE_CHECKOUT_SOURCES:
+        if _get_plugin_source(name) is not None:
+            plugin_names.add(name)
     return sorted(set(_BUILTIN.keys()) | set(_CONFIG_ALIASES) | plugin_names)
 
 

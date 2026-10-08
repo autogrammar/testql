@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import sys
+import tomllib
+from pathlib import Path
 
 import click
 import httpx
@@ -28,6 +30,18 @@ from testql.commands.suite_cmd import list_tests, suite
 from testql.commands.topology_cmd import topology
 
 
+def _cli_version() -> str:
+    try:
+        return pkg_version("testql")
+    except Exception:
+        pass
+    try:
+        pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+        return tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"]["version"]
+    except Exception:
+        return "0+unknown"
+
+
 @click.command(name="mcp")
 def mcp_serve():
     """Start TestQL MCP stdio server for Windsurf / VS Code / JetBrains."""
@@ -39,7 +53,7 @@ def mcp_serve():
 
 
 @click.group()
-@click.version_option(version=pkg_version("testql"))
+@click.version_option(version=_cli_version())
 def cli():
     """TestQL — Interface Query Language for Testing."""
     pass
@@ -100,7 +114,11 @@ def check_and_upgrade():
 
 def main():
     """Entry point for console script."""
-    check_and_upgrade()
+    try:
+        from .autoupdate import check_for_updates
+        check_for_updates("testql")
+    except Exception:
+        pass
     cli()
 
 
