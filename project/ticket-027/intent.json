@@ -18,9 +18,13 @@
     "project/ticket-014/README.md",
     "project/ticket-015/README.md",
     "project/ticket-016/README.md",
+    "project/ticket-017/README.md",
+    "project/ticket-018/README.md",
+    "project/ticket-019/README.md",
     "project/ticket-020/README.md",
     "project/ticket-021/README.md",
     "project/ticket-022/README.md",
+    "project/ticket-023/README.md",
     "project/ticket-024/README.md",
     "project/ticket-025/README.md",
     "project/ticket-026/README.md",
@@ -30,8 +34,11 @@
     "project/ticket-027/intent.json",
     "project/ticket-027/service2dsl.evidence.json",
     "project/ticket-027/ticket2dsl.evidence.json",
+    "pyproject.toml",
+    "testql/adapters/registry.py",
     "testql/autoupdate.py",
-    "testql/cli.py"
+    "testql/cli.py",
+    "testql/generators/sources/__init__.py"
   ],
   "forbiddenPaths": ["project/ticket-*/user-*.md"],
   "stacks": ["python"],
@@ -67,6 +74,19 @@
           ]
         },
         {
+          "name": "source-checkout-plugins",
+          "paths": [
+            "testql/adapters/registry.py",
+            "testql/generators/sources/__init__.py"
+          ]
+        },
+        {
+          "name": "pytest-source-layout",
+          "paths": [
+            "pyproject.toml"
+          ]
+        },
+        {
           "name": "ticket-governance",
           "paths": [
             "project/TICKETS.md",
@@ -78,6 +98,8 @@
       "responsibilityChanges": false,
       "interfaceChanges": [
         "CLI startup checks cached autoupdate state and may spawn a detached background query.",
+        "Bundled extracted plugins are discoverable in source checkouts even before editable package installation creates entry-point metadata.",
+        "Pytest adds extracted package src directories so required test collection resolves plugin modules from a source checkout.",
         "Click version display falls back to the local project version when installed distribution metadata is unavailable."
       ],
       "dataChanges": [
@@ -107,6 +129,13 @@
           "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_cli_no_block.py -q -o addopts=''"
         ],
         "evidence": "CLI startup remains non-blocking, avoids old synchronous network update checks, and imports from the source checkout without installed package metadata."
+      },
+      {
+        "criterion": "AC-06",
+        "commands": [
+          "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest packages/graphql2testql/tests/test_graphql_adapter.py packages/proto2testql/tests/test_proto_adapter.py packages/sql2testql/tests/test_sql_adapter.py packages/desktop2testql/tests/test_desktop_backend.py -q -o addopts=''"
+        ],
+        "evidence": "Required package tests resolve extracted package modules and source-checkout plugin registration."
       }
     ]
   }

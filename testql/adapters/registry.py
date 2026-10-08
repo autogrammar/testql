@@ -4,12 +4,24 @@ from __future__ import annotations
 
 import importlib
 import os
+import sys
 from importlib import metadata as importlib_metadata
 from pathlib import Path
 from types import ModuleType
 from typing import Optional
 
 from .base import BaseDSLAdapter, DSLDetectionResult, SourceLike, read_source
+
+
+_SOURCE_CHECKOUT_PLUGINS = (
+    "graphql2testql",
+    "proto2testql",
+    "sql2testql",
+)
+
+
+def _source_checkout_src(module_name: str) -> Path:
+    return Path(__file__).resolve().parents[2] / "packages" / module_name / "src"
 
 
 class AdapterRegistry:
@@ -82,6 +94,21 @@ class AdapterRegistry:
             plugin = entry_point.load()
             self.register_plugin(plugin)
             loaded.append(entry_point.name)
+        for module_name in _SOURCE_CHECKOUT_PLUGINS:
+            if module_name in loaded:
+                continue
+            try:
+                self.register_module(module_name)
+            except ImportError:
+                src = _source_checkout_src(module_name)
+                if not src.is_dir():
+                    continue
+                sys.path.insert(0, str(src))
+                try:
+                    self.register_module(module_name)
+                except ImportError:
+                    continue
+            loaded.append(module_name)
         return loaded
 
     def ensure_plugins_loaded(self) -> list[str]:

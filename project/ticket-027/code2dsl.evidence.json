@@ -4,10 +4,16 @@
   "ticket": "ticket-027",
   "repository": "testql",
   "sourcePaths": [
+    "testql/adapters/registry.py",
     "testql/autoupdate.py",
-    "testql/cli.py"
+    "testql/cli.py",
+    "testql/generators/sources/__init__.py"
   ],
   "commands": {
+    "todo2code": {
+      "available": false,
+      "observation": "command -v todo2code returned no executable in this checkout"
+    },
     "code2dsl": {
       "available": false,
       "observation": "command -v code2dsl returned no executable in this checkout"
@@ -22,7 +28,17 @@
     {
       "path": "testql/cli.py",
       "dsl": "cli.startup",
-      "observation": "Resolves Click's import-time version without requiring installed package metadata, calls check_for_updates('testql'), and no longer calls the old synchronous check_and_upgrade path from main()."
+      "observation": "Resolves Click version display from installed metadata or local pyproject.toml and calls check_for_updates('testql') instead of the old synchronous check_and_upgrade path."
+    },
+    {
+      "path": "testql/adapters/registry.py",
+      "dsl": "plugins.adapter_registry.source_checkout_fallback",
+      "observation": "Loads bundled extracted adapter plugins from importable source-checkout modules when distribution entry-point metadata is absent."
+    },
+    {
+      "path": "testql/generators/sources/__init__.py",
+      "dsl": "plugins.source_registry.source_checkout_fallback",
+      "observation": "Resolves bundled extracted generator sources from importable source-checkout modules when distribution entry-point metadata is absent."
     }
   ]
 }

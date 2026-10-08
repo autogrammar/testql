@@ -1,7 +1,7 @@
 # Ticket 027: repair autoupdate support PR
 
 - **ID**: ticket-027
-- **Owner**: trusted-runner:PLF-17130
+- **Owner**: trusted-runner:PLF-17136
 - **Status**: IN_PROGRESS
 - **Workflow state**: EDIT
 - **Created**: 2026-10-07
@@ -9,7 +9,7 @@
 ## Goal and scope
 
 Repair pull request autogrammar/testql#43 at frozen head
-`e2704f5d6845322e3c86cf2bb879d1a2f94509ad` against fetched main
+`5301da61b047fb739e2a8619a39da8792057a293` against fetched main
 `aa92ec9fb8ff91a427ed3a3e5fa0ec55e0563caf`.
 
 This ticket is the single integration ticket for the complete frozen PR diff
@@ -27,6 +27,8 @@ and the bounded repair delta. It owns only the exact candidate paths listed in
       docs2dsl and service2dsl.
 - [ ] AC-05: CLI import and help rendering work from a source checkout when
       installed package metadata is unavailable.
+- [ ] AC-06: Repository pytest configuration imports extracted package source
+      layouts during local required test collection.
 
 ## Tracking boundary
 

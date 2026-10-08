@@ -5,6 +5,10 @@
   "repository": "testql",
   "servicePaths": [],
   "commands": {
+    "todo2code": {
+      "available": false,
+      "observation": "command -v todo2code returned no executable in this checkout"
+    },
     "service2dsl": {
       "available": false,
       "observation": "command -v service2dsl returned no executable in this checkout"
@@ -14,6 +18,10 @@
     {
       "dsl": "cli.autoupdate.notice",
       "observation": "No runtime service, daemon, port, or protocol surface is introduced; behavior is limited to CLI stderr notice and local cache state."
+    },
+    {
+      "dsl": "test.source_checkout_registration",
+      "observation": "No service runtime is introduced by source-checkout plugin discovery; the repair affects in-process adapter and source lookup only."
     }
   ]
 }

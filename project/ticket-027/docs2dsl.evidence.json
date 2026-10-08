@@ -4,10 +4,18 @@
   "ticket": "ticket-027",
   "repository": "testql",
   "documentationPaths": [
+    "project/ticket-017/README.md",
+    "project/ticket-018/README.md",
+    "project/ticket-019/README.md",
+    "project/ticket-023/README.md",
     "project/ticket-027/README.md",
     "project/ticket-027/intent.json"
   ],
   "commands": {
+    "todo2code": {
+      "available": false,
+      "observation": "command -v todo2code returned no executable in this checkout"
+    },
     "docs2dsl": {
       "available": false,
       "observation": "command -v docs2dsl returned no executable in this checkout"
@@ -16,13 +24,18 @@
   "observedDocumentationMapping": [
     {
       "path": "project/ticket-027/README.md",
-      "dsl": "ticket.acceptance.autoupdate_repair",
-      "observation": "Defines non-blocking CLI startup acceptance, source-checkout import acceptance, exact PR-diff base ownership, focused tests, and evidence emission."
+      "dsl": "ticket.acceptance.autoupdate_and_test_repair",
+      "observation": "Defines non-blocking CLI startup, source-checkout import and plugin registration, exact PR-diff base ownership, focused tests, and evidence emission."
     },
     {
       "path": "project/ticket-027/intent.json",
       "dsl": "ticket.intent.integration",
-      "observation": "Binds acceptedBaseSha to the pinned PR diff base, records the source-checkout version fallback repair, and allowlists exact candidate and repair metadata paths."
+      "observation": "Binds acceptedBaseSha to the pinned PR diff base and allowlists the exact frozen PR plus bounded repair delta paths."
+    },
+    {
+      "path": "project/ticket-{017,018,019,023}/README.md",
+      "dsl": "ticket.lifecycle.serialization",
+      "observation": "Moves overlapping active tickets to PLAN so ticket-027 is the only active owner of candidate path project/TICKETS.md."
     }
   ]
 }
