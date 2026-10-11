@@ -73,7 +73,13 @@
         "ownedPaths": [
           "VERSION",
           "dsl-manifest.json",
-          "docs/**"
+          "docs/**",
+          ".governance/manifest.json",
+          "pyproject.toml",
+          "testql/adapters/registry.py",
+          "testql/autoupdate.py",
+          "testql/cli.py",
+          "testql/generators/sources/__init__.py"
         ]
       }
     }

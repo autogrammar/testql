@@ -18,16 +18,16 @@ and the bounded repair delta. It owns only the exact candidate paths listed in
 
 ## Acceptance criteria
 
-- [ ] AC-01: The CLI autoupdate path never performs a synchronous PyPI request
+- [x] AC-01: The CLI autoupdate path never performs a synchronous PyPI request
       during ordinary command startup.
-- [ ] AC-02: Ticket intent records the exact PR-diff base and candidate path
+- [x] AC-02: Ticket intent records the exact PR-diff base and candidate path
       ownership required by the trusted runner.
-- [ ] AC-03: Focused repository tests for the CLI autoupdate behavior pass.
+- [x] AC-03: Focused repository tests for the CLI autoupdate behavior pass.
 - [ ] AC-04: Required todo2code evidence is emitted for ticket2dsl, code2dsl,
       docs2dsl and service2dsl.
-- [ ] AC-05: CLI import and help rendering work from a source checkout when
+- [x] AC-05: CLI import and help rendering work from a source checkout when
       installed package metadata is unavailable.
-- [ ] AC-06: Repository pytest configuration imports extracted package source
+- [x] AC-06: Repository pytest configuration imports extracted package source
       layouts during local required test collection.
 
 ## Tracking boundary

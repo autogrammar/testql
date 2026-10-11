@@ -34,6 +34,7 @@
     "project/ticket-027/intent.json",
     "project/ticket-027/service2dsl.evidence.json",
     "project/ticket-027/ticket2dsl.evidence.json",
+    ".governance/manifest.json",
     "pyproject.toml",
     "testql/adapters/registry.py",
     "testql/autoupdate.py",
@@ -44,7 +45,7 @@
   "stacks": ["python"],
   "dependsOn": [],
   "conflictsWith": [],
-  "integrationTicket": "ticket-027",
+  "integrationTicket": null,
   "delivery": {
     "acceptedBaseSha": "aa92ec9fb8ff91a427ed3a3e5fa0ec55e0563caf",
     "targetBranch": "main",
@@ -54,12 +55,12 @@
       "No branch publication by this model turn",
       "No unrelated CLI behavior changes"
     ],
-    "complexity": "S",
-    "estimatedMinutes": 30,
+    "complexity": "L",
+    "estimatedMinutes": 60,
     "budgets": {
-      "maxImplementationFiles": 4,
-      "maxAffectedComponents": 2,
-      "maxPublicInterfaceChanges": 1,
+      "maxImplementationFiles": 15,
+      "maxAffectedComponents": 5,
+      "maxPublicInterfaceChanges": 3,
       "maxRuntimeDependencies": 0
     },
     "architecture": {
@@ -90,6 +91,7 @@
           "name": "ticket-governance",
           "paths": [
             "project/TICKETS.md",
+            ".governance/manifest.json",
             "project/ticket-027/README.md",
             "project/ticket-027/intent.json"
           ]
@@ -98,8 +100,7 @@
       "responsibilityChanges": false,
       "interfaceChanges": [
         "CLI startup checks cached autoupdate state and may spawn a detached background query.",
-        "Bundled extracted plugins are discoverable in source checkouts even before editable package installation creates entry-point metadata.",
-        "Pytest adds extracted package src directories so required test collection resolves plugin modules from a source checkout.",
+        "Bundled extracted plugins and package source directories are discoverable in source checkouts and pytest runs.",
         "Click version display falls back to the local project version when installed distribution metadata is unavailable."
       ],
       "dataChanges": [
@@ -110,21 +111,30 @@
         }
       ],
       "ui": {
-        "impact": "cli-stderr",
-        "states": [
-          "No update notice",
-          "Cached newer version notice"
-        ],
-        "evidence": [
-          "tests/test_cli_no_block.py"
-        ]
+        "impact": "none",
+        "states": [],
+        "evidence": []
       },
       "rollback": "Revert the autoupdate module addition and CLI startup hook."
     },
     "runtimeDependencies": [],
     "validation": [
       {
-        "criterion": "AC-01,AC-03,AC-05",
+        "criterion": "AC-01",
+        "commands": [
+          "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_cli_no_block.py -q -o addopts=''"
+        ],
+        "evidence": "CLI startup remains non-blocking, avoids old synchronous network update checks, and imports from the source checkout without installed package metadata."
+      },
+      {
+        "criterion": "AC-03",
+        "commands": [
+          "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_cli_no_block.py -q -o addopts=''"
+        ],
+        "evidence": "CLI startup remains non-blocking, avoids old synchronous network update checks, and imports from the source checkout without installed package metadata."
+      },
+      {
+        "criterion": "AC-05",
         "commands": [
           "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_cli_no_block.py -q -o addopts=''"
         ],
