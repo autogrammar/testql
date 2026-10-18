@@ -5,6 +5,8 @@ Falls back to a bundled copy if oqlos is not installed,
 so testql stays usable as a standalone package.
 """
 
+from testql._base_fallback import VariableStore as _FallbackVariableStore
+
 try:
     from oqlos.core.base import (  # noqa: F401
         BaseInterpreter,
@@ -15,6 +17,7 @@ try:
         StepStatus,
         VariableStore,
     )
+    VariableStore.interpolate = _FallbackVariableStore.interpolate
 except ImportError:  # oqlos not installed — use bundled fallback
     from testql._base_fallback import (  # noqa: F401
         BaseInterpreter,

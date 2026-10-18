@@ -4,6 +4,7 @@ dsl/interpreter/base.py — Shared base classes for CQL and OQL interpreters.
 
 from __future__ import annotations
 
+import os
 import re
 import time
 from abc import ABC, abstractmethod
@@ -81,15 +82,17 @@ class VariableStore:
         """Replace ${var}, ${var:-default}, and $var references in text."""
         def _repl(m: re.Match) -> str:
             key = m.group(1) or m.group(2)
-            val = self._vars.get(key)
+            val = self.get(key)
             return str(val) if val is not None else m.group(0)
 
         def _repl_with_default(m: re.Match) -> str:
             """Handle ${var:-default} syntax with fallback value."""
             key = m.group(1)
             default = m.group(2)
-            val = self._vars.get(key)
-            return str(val) if val is not None else default
+            val = self.get(key)
+            if val is None or (isinstance(val, str) and val.startswith("${") and val.endswith("}")):
+                val = os.environ.get(key)
+            return str(val) if val not in (None, "") else default
 
         # ${var:-default} syntax first (with fallback value)
         text = re.sub(r'\$\{([^}:-]+):-([^}]*)\}', _repl_with_default, text)
