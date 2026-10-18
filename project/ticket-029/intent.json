@@ -1,0 +1,24 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-029",
+  "summary": "Support default value variable interpolation when oqlos-core is installed",
+  "workstream": "core",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P2",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    "project/ticket-029/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "testql/base.py",
+    "testql/_base_fallback.py",
+    "tests/test_ir_runner_interpolation.py"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": ["python"],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null
+}

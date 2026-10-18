@@ -38,3 +38,11 @@ class TestInterpValue:
         assert interp_value(42, _store()) == 42
         assert interp_value(None, _store()) is None
         assert interp_value(True, _store()) is True
+
+    def test_default_fallback_and_env_override(self, monkeypatch):
+        monkeypatch.delenv("BASE_URL", raising=False)
+        assert interp_value("${BASE_URL:-http://localhost:8100}/api", _store()) == "http://localhost:8100/api"
+        assert interp_value("${BASE_URL:-http://localhost:8100}/api", _store(BASE_URL="http://custom:9000")) == "http://custom:9000/api"
+        monkeypatch.setenv("BASE_URL", "http://env:8200")
+        assert interp_value("${BASE_URL:-http://localhost:8100}/api", _store()) == "http://env:8200/api"
+        assert interp_value("${BASE_URL:-http://localhost:8100}/api", _store(BASE_URL="${BASE_URL:-http://localhost:8100}")) == "http://env:8200/api"
