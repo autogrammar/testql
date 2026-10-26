@@ -15,7 +15,8 @@
     "testql/commands/run_cmd.py",
     "testql/interpreter/**",
     "tests/test_dry_run_validation.py",
-    "tests/test_explicit_target.py"
+    "tests/test_explicit_target.py",
+    "tests/test_navigate_json_path.py"
   ],
   "forbiddenPaths": [
     "project/ticket-*/user-*.md"
@@ -35,10 +36,10 @@
       "No forced rewriting of absolute URLs for other explicitly named services",
       "No node configuration or protected policy changes"
     ],
-    "complexity": "S",
-    "estimatedMinutes": 45,
+    "complexity": "M",
+    "estimatedMinutes": 60,
     "budgets": {
-      "maxImplementationFiles": 5,
+      "maxImplementationFiles": 6,
       "maxAffectedComponents": 2,
       "maxPublicInterfaceChanges": 1,
       "maxRuntimeDependencies": 0
@@ -58,7 +59,8 @@
           "paths": [
             "testql/interpreter/**",
             "tests/test_explicit_target.py",
-            "tests/test_dry_run_validation.py"
+            "tests/test_dry_run_validation.py",
+            "tests/test_navigate_json_path.py"
           ]
         }
       ],

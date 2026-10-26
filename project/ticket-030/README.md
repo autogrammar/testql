@@ -21,4 +21,4 @@ SESSION_EXECUTION_AUTHORIZATION: The operator requested continued repair and tes
 
 ## Validation
 
-99 focused target-selection, interpreter, TestTOON, HTTP, assertion and dry-run tests pass with managed governance. All 19 device E2E scenarios validate in dry-run (428 validated steps, zero executed). Two independent local HTTP servers prove the CLI-selected target receives requests and the scenario default receives none. Independent protected publication remains pending. Raw results stay in ignored operational receipts.
+114 focused target-selection, interpreter, TestTOON, HTTP, assertion and dry-run tests pass with managed governance. All 19 device E2E scenarios validate in dry-run (428 validated steps, zero executed). Two independent local HTTP servers prove the CLI-selected target receives requests and the scenario default receives none. Independent protected publication remains pending. Raw results stay in ignored operational receipts.
