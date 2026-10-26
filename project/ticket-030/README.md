@@ -18,7 +18,8 @@ SESSION_EXECUTION_AUTHORIZATION: The operator requested continued repair and tes
 - [x] AC-02: Scenario defaults and ordinary variable assignments keep their documented behavior without a CLI override.
 - [x] AC-03: Dry-run validates response assertions without evaluating unavailable runtime responses or sending network requests.
 - [ ] AC-04: Focused regressions and managed governance pass; publication is independently verified.
+- [x] AC-05: Ordinary available-variable assertions retain evaluation in dry-run; response assertions remain syntax-only.
 
 ## Validation
 
-114 focused target-selection, interpreter, TestTOON, HTTP, assertion and dry-run tests pass with managed governance. All 19 device E2E scenarios validate in dry-run (428 validated steps, zero executed). Two independent local HTTP servers prove the CLI-selected target receives requests and the scenario default receives none. Independent protected publication remains pending. Raw results stay in ignored operational receipts.
+118 focused target-selection, interpreter, TestTOON, HTTP, assertion and dry-run tests pass with managed governance. All 19 device E2E scenarios validate in dry-run (428 validated steps, zero executed). Two independent local HTTP servers prove the CLI-selected target receives requests and the scenario default receives none. Independent protected publication remains pending. Raw results stay in ignored operational receipts.

@@ -119,7 +119,9 @@ class AssertionsMixin:
         desc = f"ASSERT_JSON {path} {op} {expected_str}"
         if op not in _COMPARE_OPS:
             raise ValueError(f"Unsupported ASSERT_JSON operator: {op}")
-        if self._validate_dry_response_assertion(desc):
+        root_name = path.split(".", 1)[0].split("[", 1)[0]
+        response_backed = not path.startswith("_") or root_name in {"_status", "_response", "_headers"}
+        if response_backed and self._validate_dry_response_assertion(desc):
             return
         if not path.startswith("_") or path in {"_status", "_response", "_headers"}:
             if self._skip_if_optional_unreachable(desc):
