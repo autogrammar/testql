@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 import json
+from pathlib import Path
 
 from testql.base import StepResult, StepStatus
 
@@ -26,6 +27,16 @@ _COMPARE_OPS: dict[str, Any] = {
 class AssertionsMixin:
     """Mixin providing ASSERT_STATUS, ASSERT_OK, ASSERT_CONTAINS, ASSERT_JSON."""
 
+    def _validate_dry_response_assertion(self, name: str) -> bool:
+        if not self.dry_run:
+            return False
+        self.out.step("⏭️", f"{name} (dry-run: syntax validated)")
+        self.results.append(StepResult(
+            name=name, status=StepStatus.SKIPPED,
+            message="dry-run: response assertion syntax validated; value not evaluated",
+        ))
+        return True
+
     def _skip_if_optional_unreachable(self, name: str) -> bool:
         """Skip response assertions after an optional API row that never connected."""
         if not getattr(self, "_skip_response_asserts", False):
@@ -41,9 +52,7 @@ class AssertionsMixin:
         name = f"ASSERT_STATUS {expected}"
         if self._skip_if_optional_unreachable(name):
             return
-        if getattr(self, "dry_run", False):
-            self.out.step("  ✅", f"{name} (dry-run)")
-            self.results.append(StepResult(name=name, status=StepStatus.PASSED))
+        if self._validate_dry_response_assertion(name):
             return
         ok = self.last_status == expected
         if ok:
@@ -62,9 +71,7 @@ class AssertionsMixin:
         name = "ASSERT_OK"
         if self._skip_if_optional_unreachable(name):
             return
-        if getattr(self, "dry_run", False):
-            self.out.step("  ✅", f"{name} (dry-run)")
-            self.results.append(StepResult(name=name, status=StepStatus.PASSED))
+        if self._validate_dry_response_assertion(name):
             return
         ok = 200 <= self.last_status < 300
         if ok:
@@ -85,9 +92,7 @@ class AssertionsMixin:
         name = f'ASSERT_CONTAINS "{needle}"'
         if self._skip_if_optional_unreachable(name):
             return
-        if getattr(self, "dry_run", False):
-            self.out.step("  ✅", f"{name} (dry-run)")
-            self.results.append(StepResult(name=name, status=StepStatus.PASSED))
+        if self._validate_dry_response_assertion(name):
             return
         haystack = _json.dumps(self.last_response or {})
         ok = needle in haystack
@@ -108,11 +113,14 @@ class AssertionsMixin:
 
         parts = args.strip().split(None, 2)
         if len(parts) < 3:
-            self.out.warn(f"L{line.number}: ASSERT_JSON requires <path> <op> <value>")
-            return
+            raise ValueError("ASSERT_JSON requires <path> <op> <value>")
 
         path, op, expected_str = parts[0], parts[1], parts[2]
         desc = f"ASSERT_JSON {path} {op} {expected_str}"
+        if op not in _COMPARE_OPS:
+            raise ValueError(f"Unsupported ASSERT_JSON operator: {op}")
+        if self._validate_dry_response_assertion(desc):
+            return
         if not path.startswith("_") or path in {"_status", "_response", "_headers"}:
             if self._skip_if_optional_unreachable(desc):
                 return
@@ -204,6 +212,9 @@ class AssertionsMixin:
             ))
             return
 
+        if self._validate_dry_response_assertion("ASSERT_SCHEMA"):
+            return
+
         # Validate response against schema
         try:
             import jsonschema
@@ -234,16 +245,15 @@ class AssertionsMixin:
         """
         parts = args.strip().split(None, 2)
         if len(parts) < 3:
-            self.out.warn(f"L{line.number}: ASSERT_HEADERS requires <header> <op> <value>")
-            return
+            raise ValueError("ASSERT_HEADERS requires <header> <op> <value>")
 
         header_name, op, expected = parts[0], parts[1], parts[2].strip("\"'")
         desc = f"ASSERT_HEADERS {header_name} {op} {expected}"
+        if op not in _COMPARE_OPS and op != "contains":
+            raise ValueError(f"Unsupported ASSERT_HEADERS operator: {op}")
         if self._skip_if_optional_unreachable(desc):
             return
-        if getattr(self, "dry_run", False):
-            self.out.step("  ✅", f"{desc} (dry-run)")
-            self.results.append(StepResult(name=desc, status=StepStatus.PASSED))
+        if self._validate_dry_response_assertion(desc):
             return
 
         # Get headers from variable (set by API runner)
@@ -285,12 +295,18 @@ class AssertionsMixin:
         """
         parts = args.strip().split(None, 2)
         if len(parts) < 2:
-            self.out.warn(f"L{line.number}: ASSERT_COOKIES requires <cookie> <op> [value]")
-            return
+            raise ValueError("ASSERT_COOKIES requires <cookie> <op> [value]")
 
         cookie_name = parts[0]
         op = parts[1]
         expected = parts[2] if len(parts) > 2 else None
+        if op not in {"exists", "not_exists"}:
+            if op not in _COMPARE_OPS and op != "contains":
+                raise ValueError(f"Unsupported ASSERT_COOKIES operator: {op}")
+            if expected is None:
+                raise ValueError(f"ASSERT_COOKIES requires value for op '{op}'")
+        if self._validate_dry_response_assertion(f"ASSERT_COOKIES {args}"):
+            return
 
         # Get cookies from headers variable
         headers = self.vars.get("_headers", {})

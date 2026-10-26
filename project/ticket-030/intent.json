@@ -1,0 +1,103 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-030",
+  "summary": "Honor explicit TestQL target and validate dry runs without runtime assertions",
+  "workstream": "core",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    "project/ticket-030/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "testql/commands/run_cmd.py",
+    "testql/interpreter/**",
+    "tests/test_dry_run_validation.py",
+    "tests/test_explicit_target.py"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [
+    "python"
+  ],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "5dc442a173b3c39684d37ae7ed5e309c04244d14",
+    "targetBranch": "main",
+    "outcome": "Honor explicit CLI base_url throughout scenario assignments and report dry-run syntax validation separately from execution.",
+    "nonGoals": [
+      "No physical actuator commands or firmware deployment",
+      "No forced rewriting of absolute URLs for other explicitly named services",
+      "No node configuration or protected policy changes"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 45,
+    "budgets": {
+      "maxImplementationFiles": 5,
+      "maxAffectedComponents": 2,
+      "maxPublicInterfaceChanges": 1,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Pin the CLI base_url override in the interpreter; validate response assertion syntax in dry-run and expose separate validated/executed metrics while retaining legacy step status compatibility.",
+      "components": [
+        {
+          "name": "cli",
+          "paths": [
+            "testql/commands/run_cmd.py"
+          ]
+        },
+        {
+          "name": "interpreter",
+          "paths": [
+            "testql/interpreter/**",
+            "tests/test_explicit_target.py",
+            "tests/test_dry_run_validation.py"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [
+        "Optional interpreter base_url_override argument; explicit CLI target has precedence over CONFIG/SET."
+      ],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert ticket-030 source commit; keep hardware settings and installed runtime unchanged until qualified publication."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "pytest tests/test_explicit_target.py"
+        ],
+        "evidence": "Two real local servers and INCLUDE regression prove only the CLI target is contacted."
+      },
+      {
+        "criterion": "AC-03",
+        "commands": [
+          "pytest tests/test_dry_run_validation.py"
+        ],
+        "evidence": "No HTTP execution, zero executed steps, malformed syntax rejected and live assertion failures preserved."
+      },
+      {
+        "criterion": "AC-04",
+        "commands": [
+          "bash project/governance-check.sh",
+          "pytest tests/test_interpreter.py tests/test_run_cmd.py tests/test_api_optional_unreachable.py"
+        ],
+        "evidence": "99 focused regressions and managed governance pass; protected exact-head review remains required."
+      }
+    ]
+  }
+}
