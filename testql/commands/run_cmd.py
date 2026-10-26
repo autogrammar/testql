@@ -103,8 +103,14 @@ def _run_single(
         include_paths=[str(path.parent), "."],
         timeout_ms=timeout,
         strict_commands=not allow_semantic_events,
+        base_url_override=url or None,
     )
     return interp.run(source, path.name)
+
+
+def _runtime_passed(result) -> int:
+    """Legacy interpreter dry-run step successes are validations, not execution."""
+    return 0 if getattr(result, "executed", None) == 0 else result.passed
 
 
 def _emit_single_json(result) -> None:
@@ -114,7 +120,7 @@ def _emit_single_json(result) -> None:
             {
                 "source": result.source,
                 "ok": result.ok,
-                "passed": result.passed,
+                "passed": _runtime_passed(result),
                 "failed": result.failed,
                 "steps": len(result.steps),
                 "skipped": getattr(result, "skipped", 0),
@@ -164,7 +170,7 @@ def _emit_multi_json(results: list[tuple[Path, object]]) -> None:
                 "file": str(path),
                 "source": result.source,
                 "ok": ok,
-                "passed": result.passed,
+                "passed": _runtime_passed(result),
                 "failed": result.failed,
                 "steps": len(result.steps),
                 "skipped": getattr(result, "skipped", 0),

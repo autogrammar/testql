@@ -35,6 +35,27 @@ from ._websockets import WebSocketMixin
 from .dispatcher import CommandDispatcher
 
 
+class _DryRunResult(ScriptResult):
+    """Expose validation counts while preserving legacy per-step statuses."""
+
+    @property
+    def validated(self) -> int:
+        return sum(step.status in (StepStatus.PASSED, StepStatus.SKIPPED) for step in self.steps)
+
+    @property
+    def executed(self) -> int:
+        return 0
+
+    @property
+    def skipped(self) -> int:
+        return sum(step.status == StepStatus.SKIPPED for step in self.steps)
+
+    def summary(self) -> str:
+        icon = "✅" if self.ok else "❌"
+        return (f"{icon} {self.source}: {self.validated}/{len(self.steps)} validated, "
+                f"{self.failed} failed, 0 executed ({self.duration_ms:.0f}ms)")
+
+
 class OqlInterpreter(ApiRunnerMixin, AssertionsMixin, ContextMixin, EncoderMixin, FlowMixin, GuiMixin, BrowserPerformanceMixin, DesktopMixin, DomScanMixin, HardwareMixin, ModbusMixin, ScannerMixin, ShellMixin, UnitMixin, ValidationMixin, WebSocketMixin, BaseInterpreter):
     """
     OQL interpreter — runs .testql.toon.yaml / .oql / .tql scripts.
@@ -63,6 +84,7 @@ class OqlInterpreter(ApiRunnerMixin, AssertionsMixin, ContextMixin, EncoderMixin
         bridge_url: str | None = None,
         timeout_ms: int | None = None,
         strict_commands: bool = False,
+        base_url_override: str | None = None,
     ):
         # Handle bridge_url safely (BaseInterpreter in oqlos might not support it yet)
         try:
@@ -71,6 +93,9 @@ class OqlInterpreter(ApiRunnerMixin, AssertionsMixin, ContextMixin, EncoderMixin
             super().__init__(variables=variables, quiet=quiet)
             self.bridge_url = bridge_url
         self.api_url = api_url
+        self.base_url_override = base_url_override
+        if base_url_override is not None:
+            self.vars.set("base_url", base_url_override)
         self.dry_run = dry_run
         self.include_paths = include_paths or ["."]
         self.timeout_ms = timeout_ms
@@ -131,7 +156,8 @@ class OqlInterpreter(ApiRunnerMixin, AssertionsMixin, ContextMixin, EncoderMixin
                 reported_variables[name] = "***REDACTED***"
         reported_variables = self.redact(reported_variables)
         self._redact_results()
-        sr = ScriptResult(
+        result_type = _DryRunResult if self.dry_run else ScriptResult
+        sr = result_type(
             source=parsed.filename, ok=ok, steps=self.results,
             variables=reported_variables, errors=self.errors,
             warnings=self.warnings, duration_ms=elapsed,
@@ -168,6 +194,13 @@ class OqlInterpreter(ApiRunnerMixin, AssertionsMixin, ContextMixin, EncoderMixin
 
     # ── Variables ─────────────────────────────────────────────────────────────
 
+    def _set_scenario_variable(self, key: str, value: str) -> None:
+        # An explicit operator target outranks CONFIG and SET, including INCLUDEs.
+        if key == "base_url" and self.base_url_override is not None:
+            value = self.base_url_override
+        self.vars.set(key, value)
+        self.out.step("📝", f'SET "{key}" = "{value}"')
+
     def _cmd_set(self, args: str, line: OqlLine) -> None:
         # Handle quoted keys with spaces: SET "key with spaces" "value"
         import shlex
@@ -182,8 +215,7 @@ class OqlInterpreter(ApiRunnerMixin, AssertionsMixin, ContextMixin, EncoderMixin
                 val = val[1:-1]
             elif val.startswith("'") and val.endswith("'"):
                 val = val[1:-1]
-            self.vars.set(key, val)
-            self.out.step("📝", f'SET "{key}" = "{val}"')
+            self._set_scenario_variable(key, val)
         except ValueError:
             # Fallback to simple split if shlex fails
             parts = args.split(None, 1)
@@ -191,8 +223,7 @@ class OqlInterpreter(ApiRunnerMixin, AssertionsMixin, ContextMixin, EncoderMixin
                 self.out.warn(f"L{line.number}: SET requires <name> <value>")
                 return
             key, val = parts[0], parts[1].strip().strip('"\'')
-            self.vars.set(key, val)
-            self.out.step("📝", f"SET {key} = {val}")
+            self._set_scenario_variable(key, val)
 
     def _cmd_get(self, args: str, line: OqlLine) -> None:
         key = args.strip()

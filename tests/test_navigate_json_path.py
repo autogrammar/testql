@@ -51,8 +51,9 @@ class TestAssertJsonAndCaptureWithIndexedPath:
     """Behavioural regression: ASSERT_JSON / CAPTURE must support results[0].id."""
 
     def _make_interp(self) -> OqlInterpreter:
-        interp = OqlInterpreter(dry_run=True, quiet=True)
-        # Simulate a previous API response without doing real HTTP.
+        # Evaluate seeded response data; syntax-only dry-run must not evaluate it.
+        interp = OqlInterpreter(quiet=True)
+        # No API commands are executed by these assertion/capture tests.
         interp.last_response = SAMPLE_RESPONSE
         interp.last_status = 200
         return interp
@@ -117,7 +118,7 @@ ASSERT_JSON results.length >= 1
     def _make_interp(self):
         from testql.interpreter import OqlInterpreter
 
-        interp = OqlInterpreter(dry_run=True, quiet=True)
+        interp = OqlInterpreter(quiet=True)
         interp.last_response = {
             "results": [
                 {"id": "abc-1", "title": "Identification: JAN_TEST_42"},
