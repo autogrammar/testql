@@ -28,7 +28,7 @@
   "conflictsWith": [],
   "integrationTicket": null,
   "delivery": {
-    "acceptedBaseSha": "5dc442a173b3c39684d37ae7ed5e309c04244d14",
+    "acceptedBaseSha": "3c83a8d5cb889bbfea4d4d17fa590e7c604cd9a7",
     "targetBranch": "main",
     "outcome": "Honor explicit CLI base_url throughout scenario assignments and report dry-run syntax validation separately from execution.",
     "nonGoals": [
@@ -46,7 +46,7 @@
     },
     "architecture": {
       "status": "accepted",
-      "decision": "Pin the CLI base_url override in the interpreter; validate response assertion syntax in dry-run and expose separate validated/executed metrics while retaining legacy step status compatibility.",
+      "decision": "Pin the CLI base_url override in the interpreter; validate response assertion syntax in dry-run and expose separate validated/executed metrics while retaining legacy step status compatibility. Ordinary interpreter-variable assertions remain evaluated during dry-run; only response-dependent assertions are skipped.",
       "components": [
         {
           "name": "cli",
@@ -99,6 +99,13 @@
           "pytest tests/test_interpreter.py tests/test_run_cmd.py tests/test_api_optional_unreachable.py"
         ],
         "evidence": "99 focused regressions and managed governance pass; protected exact-head review remains required."
+      },
+      {
+        "criterion": "AC-05",
+        "commands": [
+          "pytest tests/test_dry_run_validation.py"
+        ],
+        "evidence": "Reproduce advisory: available variable mismatches must fail in dry-run; response data remains syntax-only."
       }
     ]
   }

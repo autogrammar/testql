@@ -57,6 +57,30 @@ def test_live_assertions_still_require_real_response_values():
     assert result.failed == 1
 
 
+@pytest.mark.parametrize("path,variables", [
+    ("_counter", {"_counter": 3}),
+    ("_config.count", {"_config": {"count": 3}}),
+])
+def test_dry_run_evaluates_available_variable_mismatches(path, variables):
+    result = OqlInterpreter(variables=variables, dry_run=True, quiet=True).run(f"ASSERT_JSON {path} == 4")
+    assert result.ok is False
+    assert result.failed == 1
+
+
+def test_dry_run_evaluates_available_variable_success():
+    result = OqlInterpreter(variables={"_counter": 3}, dry_run=True, quiet=True).run("ASSERT_JSON _counter == 3")
+    assert result.ok is True
+    assert result.validated == 1
+    assert result.executed == 0
+
+
+def test_dry_run_does_not_evaluate_nested_response_variables():
+    result = OqlInterpreter(dry_run=True, quiet=True).run("ASSERT_JSON _response.ready == true")
+    assert result.ok is True
+    assert result.validated == 1
+    assert result.skipped == 1
+
+
 def test_live_header_cookie_and_schema_assertions_still_evaluate_response():
     pytest.importorskip("jsonschema")
     interp = OqlInterpreter(quiet=True)
